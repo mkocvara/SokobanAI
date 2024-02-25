@@ -58,6 +58,7 @@ public class GameWorld
     {
         currentLevel = level;
         InitMapState();
+        FitCameraToMap();
     }
 
     public void InitMapState()
@@ -101,7 +102,7 @@ public class GameWorld
 
     private void MakeMap()
     {
-        tilemap = GameObject.FindObjectOfType<Tilemap>(); // TEST!
+        tilemap = GameObject.FindObjectOfType<Tilemap>();
         tilemap.ClearAllTiles();
 
         // Loop through the width of the map
@@ -116,13 +117,20 @@ public class GameWorld
                 TileBase tile = gameController.TypeTileAssociation[mapState[x,y]];
                 
                 // Invert the y axis because Unity's tilemap has the origin at the bottom left
-                // Also offset the map so that it is centred
-                int tilePosX = x - mapSize.x / 2;
-                int tilePosY = (mapSize.y - y) - mapSize.y / 2;
+                int tilePosX = x;
+                int tilePosY = (mapSize.y - 1 - y);
 
                 tilemap.SetTile(new Vector3Int(tilePosX, tilePosY, 0), tile);
             }
         }
+    }
+
+    private void FitCameraToMap()
+    {
+        int biggerSide = Mathf.Max(mapSize.x, mapSize.y);
+        Camera.main.orthographicSize = biggerSide / 2.0f;
+        Camera.main.transform.position = new Vector3(tilemap.size.x / 2.0f, tilemap.size.y / 2.0f, Camera.main.transform.position.z);
+        
     }
 
     public void ResetMapState()
