@@ -49,13 +49,13 @@ public class Level
             switch (readElement)
             {
                 case 'N':
-                    mapName += line;
+                    mapName += line; // should be only one line
                     break;
                 case 'M':
                     mapString += (mapString.Length != 0 ? "\n" : "") + line; // add newline if not first line
                     break;
                 case 'I':
-                    instructions += (mapString.Length != 0 ? "\n" : "") + line; // add newline if not first line
+                    instructions += (instructions.Length != 0 ? "\n" : "") + line; // add newline if not first line
                     break;
                 default:
                     break;

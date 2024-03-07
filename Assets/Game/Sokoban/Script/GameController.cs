@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -13,6 +14,9 @@ public class GameController : MonoBehaviour
 
     public int GenerationsToRun = 100;
     public float PlaybackSpeed = 1f;
+
+    public GameObject InstructionsTextObject;
+
     public GameWorld GameWorld { get { return gameWorld; } }
 
     private List<Level> levels = new();
@@ -21,6 +25,7 @@ public class GameController : MonoBehaviour
     private List<GameRule> rules = new(); // TODO
 
     private readonly GameWorld gameWorld;
+    private TextMeshProUGUI instructionsTextMesh;
 
     public GameController() : base()
     {
@@ -29,6 +34,8 @@ public class GameController : MonoBehaviour
 
     void Start()
     {
+        instructionsTextMesh = InstructionsTextObject.GetComponent<TextMeshProUGUI>();
+
         LoadAllLevels();
         OpenLevel(currentLevel);
     }
@@ -52,6 +59,18 @@ public class GameController : MonoBehaviour
     {
         gameWorld.SetLevel(levels[level-1]);
         currentLevel = level;
+        UpdateInstructions();
+    }
+
+    private void UpdateInstructions()
+    {
+        if (instructionsTextMesh is null)
+        {
+            Console.WriteLine("Error: Instructions text mesh not set.");
+            return;
+        }
+
+        instructionsTextMesh.SetText(levels[currentLevel-1].Instructions);
     }
 
     public void StartPlayback()

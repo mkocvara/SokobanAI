@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using TMPro;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Tilemaps;
@@ -26,7 +27,7 @@ public class GameWorld
         PlayerOnMark,
         Ground
     }
-    
+
     private readonly Dictionary<char, GridObjectType> objectTypeSymbolPairs = new()
     {
         { '#', GridObjectType.Wall },
