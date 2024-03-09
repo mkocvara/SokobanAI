@@ -59,7 +59,7 @@ public class GameRule : MonoBehaviour
             reward = 0;
         }
 
-        // Debug.Log("GameRule: Reward for " + action.ToDescription() + " set to " + reward);
+        // Debug.Log("GameRule.OnEditReward(): Reward for " + action.ToDescription() + " set to " + reward);
     }
 
     private void SetActionName()

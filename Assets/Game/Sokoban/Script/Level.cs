@@ -28,7 +28,7 @@ public class Level
     {
         if (!File.Exists(LevelDirectory + LevelNumber))
         {
-            Console.WriteLine("Warning: Level file not found: " + LevelDirectory + LevelNumber);
+            Debug.LogWarning("Level.LoadMapFromFile(): Level file not found: " + LevelDirectory + LevelNumber);
             return;
         }
 
@@ -64,8 +64,6 @@ public class Level
 
         inputStream.Close();
 
-#if DEBUG
-        Console.WriteLine("Debug: MAP STRING:\n" + MapString);
-#endif
+        //Debug.Log("Level.LoadMapFromFile(): MAP STRING:\n" + MapString);
     }
 }

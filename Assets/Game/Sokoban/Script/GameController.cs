@@ -52,7 +52,7 @@ public class GameController : MonoBehaviour
     {
         if (ActionsList == null)
         {
-            Debug.LogError("GameController: Action List not assigned.");
+            Debug.LogError("GameController.InitialiseActionList(): Action List not assigned.");
             return;
         }
 
@@ -104,7 +104,7 @@ public class GameController : MonoBehaviour
     {
         GameObject ruleItem = Instantiate(RulePrefab, RulesList.transform);
         GameRule rule = ruleItem.GetComponent<GameRule>();
-        // Debug.Log("GameController: New rule successful? " + rule != null ? "True" : "False");
+        // Debug.Log("GameController.AddNewRule(): New rule successful? " + rule != null ? "True" : "False");
         rule.Init(actionType);
         rules.Add(rule);
 
@@ -130,7 +130,7 @@ public class GameController : MonoBehaviour
     {
         if (instructionsTextMesh is null)
         {
-            Console.WriteLine("Error: Instructions text mesh not set.");
+            Debug.LogError("GameController.UpdateInstructions(): Instructions text mesh not set.");
             return;
         }
 

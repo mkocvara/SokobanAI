@@ -16,7 +16,7 @@ public class FitBelow : MonoBehaviour
     {
         if (ObjectToFitBelow == null)
         {
-            Debug.LogError("FitBelow: Object to fit under not assigned.");
+            Debug.LogError("FitBelow.Start(): Object to fit under not assigned.");
             return;
         }
        

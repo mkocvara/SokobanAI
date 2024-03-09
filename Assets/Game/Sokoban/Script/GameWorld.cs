@@ -174,7 +174,7 @@ public class GameWorld
             case GridObjectType.Wall:
                 break;
             default:
-                Console.WriteLine("Error: Unrecognised object.");
+                Debug.LogError("GameWorld.MakeMove(): Unrecognised object.");
                 break;
         }
     }
