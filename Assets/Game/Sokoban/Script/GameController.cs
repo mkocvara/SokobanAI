@@ -19,7 +19,7 @@ public class GameController : MonoBehaviour
 
     public GameObject InstructionsTextObject;
 
-    public GameObject NewRuleSetup;
+    public GameObject NewRuleSetup, NoActionsLeftHint;
     public GameObject RulesList, ActionsList;
     public GameObject ActionItemPrefab, RulePrefab;
 
@@ -111,13 +111,19 @@ public class GameController : MonoBehaviour
         ruleItem.GetComponentInChildren<Button>().onClick.AddListener(() => RemoveRule(ruleItem, rule));
 
         actionTypeToActionItem[actionType].SetActive(false);
+        
+        // check if all actions are now in use and show hint if so
+        if (actionTypeToActionItem.Values.All(item => !item.activeSelf))
+            NoActionsLeftHint.SetActive(true);
     }
 
     public void RemoveRule(GameObject ruleObject, GameRule rule)
     {
         rules.Remove(rule);
         Destroy(ruleObject);
+
         actionTypeToActionItem[rule.Action].SetActive(true);
+        NoActionsLeftHint.SetActive(false);
     }
 
     public void StartPlayback()
