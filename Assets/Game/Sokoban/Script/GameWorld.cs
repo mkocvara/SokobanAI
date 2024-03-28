@@ -28,6 +28,71 @@ public class GameWorld
         Ground
     }
 
+    private class MapState
+    {
+        public int2 PlayerPos { get; set; }
+        public int2 MapSize { get; set; }
+        public Tilemap Tilemap { get; private set; }
+
+        private GridObjectType[,] state;
+        private readonly GameController gameController;
+
+        public MapState(GameController gameController, int2 mapSize)
+        {
+            MapSize = mapSize;
+            state = new GridObjectType[mapSize.y, mapSize.x];
+            this.gameController = gameController;
+
+            InitMap();
+        }
+
+        public MapState(GameController gameController, int mapSizeX, int mapSizeY) : this(gameController, new int2(mapSizeX, mapSizeY)) { }
+
+        public void SetGridObject(GridObjectType gridObject, int x, int y)
+        {
+            state[y, x] = gridObject;
+
+            if (gridObject == GridObjectType.None)
+                return;
+
+            // Set tile on the tilemap
+            if (!gameController.TypeTileAssociation.ContainsKey(gridObject))
+            {
+                Debug.LogError("MapState.SetGridObject(): Can't find tile associated with action \'" + gridObject.ToDescription() + "\'");
+                return;
+            }
+
+            TileBase tile = gameController.TypeTileAssociation[gridObject];
+
+            // > Invert the y axis because Unity's tilemap has the origin at the bottom left
+            int tilePosX = x;
+            int tilePosY = (MapSize.y - 1 - y);
+
+            Tilemap.SetTile(new Vector3Int(tilePosX, tilePosY, 0), tile);
+        }
+
+        public void SetGridObject(GridObjectType gridObject, int2 pos)
+        {
+            SetGridObject(gridObject, pos.x, pos.y);
+        }
+
+        public GridObjectType GetGridObject(int x, int y)
+        {
+            return state[y, x];
+        }
+
+        public GridObjectType GetGridObject(int2 pos)
+        {
+            return GetGridObject(pos.x, pos.y);
+        }
+
+        private void InitMap()
+        {
+            Tilemap = GameObject.FindObjectOfType<Tilemap>();
+            Tilemap.ClearAllTiles();
+        }
+    }
+
     private readonly Dictionary<char, GridObjectType> objectTypeSymbolPairs = new()
     {
         { '#', GridObjectType.Wall },
@@ -44,11 +109,8 @@ public class GameWorld
 
     private readonly GameController gameController;
 
-    private GridObjectType[,] mapState;
-    private Tilemap tilemap;
+    private MapState mapState;
     private Level currentLevel;
-    private int2 playerPos;
-    private int2 mapSize;
 
     public GameWorld(GameController gameController)
     {
@@ -75,63 +137,27 @@ public class GameWorld
                 rows[i] = rows[i].PadRight(longestRow, ' ');
         }
 
-        mapSize.x = rows[0].Length;
-        mapSize.y = rows.Length;
+        mapState = new(gameController, rows[0].Length, rows.Length);
 
-        mapState = new GridObjectType[mapSize.x, mapSize.y];
-
-        for (int i = 0; i < mapSize.x; i++)
+        for (int x = 0; x < mapState.MapSize.x; x++)
         {
-            for (int j = 0; j < mapSize.y; j++)
+            for (int y = 0; y < mapState.MapSize.y; y++)
             {
                 GridObjectType gridObjectType = GridObjectType.None;
                 
-                char symbol = rows[j][i];
+                char symbol = rows[y][x]; // x and y are swapped because of how multidimentional arrays are represented differs from the map's coordinate system
 
                 if (objectTypeSymbolPairs.ContainsKey(symbol))
                     gridObjectType = objectTypeSymbolPairs[symbol];
 
                 if (gridObjectType == GridObjectType.Player)
-                    playerPos = new(i, j);
+                    mapState.PlayerPos = new(x, y);
 
-                mapState[i, j] = gridObjectType;
+                mapState.SetGridObject(gridObjectType, x, y);
             }
         }
 
-        MakeMap();
-    }
-
-    private void MakeMap()
-    {
-        tilemap = GameObject.FindObjectOfType<Tilemap>();
-        tilemap.ClearAllTiles();
-
-        // Loop through the width of the map
-        for (int x = 0; x < mapSize.x; x++)
-        {
-            // Loop through the height of the map
-            for (int y = 0; y < mapSize.y; y++)
-            {
-                if (!gameController.TypeTileAssociation.ContainsKey(mapState[x, y]))
-                    continue;
-
-                TileBase tile = gameController.TypeTileAssociation[mapState[x,y]];
-                
-                // Invert the y axis because Unity's tilemap has the origin at the bottom left
-                int tilePosX = x;
-                int tilePosY = (mapSize.y - 1 - y);
-
-                tilemap.SetTile(new Vector3Int(tilePosX, tilePosY, 0), tile);
-            }
-        }
-    }
-
-    private void FitCameraToMap()
-    {
-        int biggerSide = Mathf.Max(mapSize.x, mapSize.y);
-        Camera.main.orthographicSize = biggerSide / 2.0f;
-        Camera.main.transform.position = new Vector3(tilemap.size.x / 2.0f, tilemap.size.y / 2.0f, Camera.main.transform.position.z);
-        
+        DebugPrintMapState();
     }
 
     public void ResetMapState()
@@ -141,14 +167,14 @@ public class GameWorld
 
     public void MakeMove(MoveDir move)
     {
-        int2 moveTo = playerPos;
+        int2 moveTo = mapState.PlayerPos;
         switch (move)
         {
             case MoveDir.Up:
-                moveTo.y += 1;
+                moveTo.y -= 1;
                 break;
             case MoveDir.Down:
-                moveTo.y -= 1;
+                moveTo.y += 1;
                 break;
             case MoveDir.Left:
                 moveTo.x -= 1;
@@ -158,11 +184,11 @@ public class GameWorld
                 break;
         }
 
-        switch (mapState[moveTo.x, moveTo.y])
+        switch (mapState.GetGridObject(moveTo.x, moveTo.y))
         {
             case GridObjectType.Box:
             case GridObjectType.BoxOnMark:
-                if (MoveBox(moveTo, moveTo + (moveTo - playerPos)))
+                if (MoveBox(moveTo, moveTo + (moveTo - mapState.PlayerPos)))
                     MovePlayer(moveTo);
                 break;
 
@@ -179,29 +205,53 @@ public class GameWorld
         }
     }
 
+#if DEBUG
+    public void DebugPrintMapState()
+    {
+        string debugMapState = "Map State: ";
+        for (int y = 0; y < mapState.MapSize.y; y++)
+        {
+            debugMapState += "\n";
+            for (int x = 0; x < mapState.MapSize.x; x++)
+            {
+                char symbol = objectTypeSymbolPairs.FirstOrDefault(pair => pair.Value == mapState.GetGridObject(x, y)).Key;
+                debugMapState += symbol;
+            }
+        }
+
+        Debug.Log(debugMapState);
+    }
+#endif
+
+    private void FitCameraToMap()
+    {
+        int biggerSide = Mathf.Max(mapState.MapSize.x, mapState.MapSize.y);
+        Camera.main.orthographicSize = biggerSide / 2.0f;
+        Camera.main.transform.position = new Vector3(mapState.Tilemap.size.x / 2.0f, mapState.Tilemap.size.y / 2.0f, Camera.main.transform.position.z);
+
+    }
+
     private void MovePlayer(int2 moveTo)
     {
-        mapState[moveTo.x, moveTo.y] = mapState[moveTo.x, moveTo.y] == GridObjectType.Mark ? GridObjectType.PlayerOnMark : GridObjectType.Player;
-        GridObjectType underPlayer = mapState[playerPos.x, playerPos.y] == GridObjectType.PlayerOnMark ? GridObjectType.Mark : GridObjectType.Ground;
-        mapState[playerPos.x, playerPos.y] = underPlayer;
+        GridObjectType destinationState = mapState.GetGridObject(moveTo.x, moveTo.y) == GridObjectType.Mark ? GridObjectType.PlayerOnMark : GridObjectType.Player;
+        mapState.SetGridObject(destinationState, moveTo.x, moveTo.y);
 
-        tilemap.SetTile(new Vector3Int(playerPos.x, playerPos.y, 0), gameController.TypeTileAssociation[underPlayer]);
-        tilemap.SetTile(new Vector3Int(moveTo.x, moveTo.y, 0), gameController.TypeTileAssociation[mapState[moveTo.x, moveTo.y]]);
+        GridObjectType underPlayer = mapState.GetGridObject(mapState.PlayerPos.x, mapState.PlayerPos.y) == GridObjectType.PlayerOnMark ? GridObjectType.Mark : GridObjectType.Ground;
+        mapState.SetGridObject(underPlayer, mapState.PlayerPos.x, mapState.PlayerPos.y);
 
-        playerPos = moveTo;
+        mapState.PlayerPos = moveTo;
     }
 
     private bool MoveBox(int2 boxPos, int2 moveTo)
     {
-        if (!(mapState[moveTo.x, moveTo.y] == GridObjectType.Mark || mapState[moveTo.x, moveTo.y] == GridObjectType.Ground))
+        if (!(mapState.GetGridObject(moveTo.x, moveTo.y) == GridObjectType.Mark || mapState.GetGridObject(moveTo.x, moveTo.y) == GridObjectType.Ground))
             return false;
 
-        mapState[moveTo.x, moveTo.y] = mapState[moveTo.x, moveTo.y] == GridObjectType.Mark ? GridObjectType.BoxOnMark : GridObjectType.Box;
-        GridObjectType underBox = mapState[boxPos.x, boxPos.y] == GridObjectType.BoxOnMark ? GridObjectType.Mark : GridObjectType.Ground;
-        mapState[boxPos.x, boxPos.y] = underBox;
+        GridObjectType destinationState = mapState.GetGridObject(moveTo.x, moveTo.y) == GridObjectType.Mark ? GridObjectType.BoxOnMark : GridObjectType.Box;
+        mapState.SetGridObject(destinationState, moveTo.x, moveTo.y);
 
-        tilemap.SetTile(new Vector3Int(boxPos.x, boxPos.y, 0), gameController.TypeTileAssociation[underBox]);
-        tilemap.SetTile(new Vector3Int(moveTo.x, moveTo.y, 0), gameController.TypeTileAssociation[mapState[moveTo.x, moveTo.y]]);
+        GridObjectType underBox = mapState.GetGridObject(boxPos.x, boxPos.y) == GridObjectType.BoxOnMark ? GridObjectType.Mark : GridObjectType.Ground;
+        mapState.SetGridObject(underBox, boxPos.x, boxPos.y); 
 
         return true;
     }
