@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Level
 {
-    public static readonly string LevelDirectory = Application.dataPath + "/Game/Sokoban/Levels/";
+    public static readonly string LevelDirectory = Application.streamingAssetsPath + "/Levels/";
 
     public int LevelNumber { get { return levelNumber; } }
     public string MapName { get { return mapName; } }
