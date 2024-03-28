@@ -7,6 +7,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 using UnityEngine.UI;
+using System.Collections;
 
 public class GameController : MonoBehaviour
 {
@@ -40,8 +41,10 @@ public class GameController : MonoBehaviour
     private readonly string pythonScriptPath = Path.Combine(Application.streamingAssetsPath, "AI", "script.py");
     private readonly string aiOutFilePath = Path.Combine(Application.streamingAssetsPath, "AI", "ai-out.txt");
     private readonly string parametersJsonPath = Path.Combine(Application.streamingAssetsPath, "AI", "parameters.json");
+    
+    private readonly string aiOutEndLine = "END";
 
-    // TODO level picker + revamp level loading to use StreamingAssets (otherwise it won't work in a live build)
+    // TODO level picker
 
     public GameController() : base()
     {
@@ -188,6 +191,9 @@ public class GameController : MonoBehaviour
         string paramsJson = JsonUtility.ToJson(new AIParameters(currentLevel, GenerationsToRun, rules), true);
         File.WriteAllText(parametersJsonPath, paramsJson);
 
+        // Delete the AI output file to avoid playing back an old run
+        File.Delete(aiOutFilePath);
+
         // Run the python script
         ProcessStartInfo start = new()
         {
@@ -202,7 +208,7 @@ public class GameController : MonoBehaviour
         Process.Start(start);
 
         // Read the output file and play back
-        // TODO
+        StartCoroutine(Playback());
 
         // Keeping the following variant in case of future need.
         /* TODO
@@ -245,6 +251,92 @@ public class GameController : MonoBehaviour
             fromFile.InvokeMethod("main");
         }
         */
+    }
+
+    private IEnumerator Playback()
+    {
+        GameWorld.DebugPrintMapState();
+
+        IEnumerable<string> lines;
+        string playLine = "", nextLine;
+
+        int waitCounter = 0;
+        while (!File.Exists(aiOutFilePath))
+        {
+            yield return new WaitForSeconds(2);
+            waitCounter++;
+            if (waitCounter > 10)
+            {
+                UnityEngine.Debug.LogError("GameController.StartPlayback(): AI output file not found.");
+                yield break;
+            }
+        }
+
+        using StreamReader file = new(aiOutFilePath);
+
+        do
+        {
+            lines = File.ReadLines(aiOutFilePath);
+            nextLine = lines.Last();
+
+            // break if the terminating line is reached 
+            if (nextLine == aiOutEndLine)
+                break;
+
+            if (nextLine == playLine)
+            {
+                // sleep for 2 seconds and try again
+                yield return new WaitForSeconds(2);
+                continue;
+            }
+
+            playLine = nextLine;
+            yield return StartCoroutine(PlayGeneration(playLine));
+        }
+        while (playLine != aiOutEndLine);
+
+        // get line before the terminating line and play it if it hasn't been played yet
+        nextLine = lines.SkipLast(1).Last();
+        if (nextLine != playLine)
+            yield return StartCoroutine(PlayGeneration(playLine = nextLine));
+        UnityEngine.Debug.Log("GameController.StartPlayback(): Playback complete.");
+    }
+
+    private IEnumerator PlayGeneration(string playLine)
+    {
+        UnityEngine.Debug.Log("GameController.PlayGeneration(): Playing back line: " + playLine);
+
+        foreach (char actionChar  in playLine)
+        {
+            switch (actionChar)
+            {
+                case 'U':
+                    GameWorld.MakeMove(GameWorld.MoveDir.Up);
+                    break;
+                case 'D':
+                    GameWorld.MakeMove(GameWorld.MoveDir.Down);
+                    break;
+                case 'L':
+                    GameWorld.MakeMove(GameWorld.MoveDir.Left);
+                    break;
+                case 'R':
+                    GameWorld.MakeMove(GameWorld.MoveDir.Right);
+                    break;
+                default:
+                    UnityEngine.Debug.LogWarning("GameController.PlayGeneration(): Invalid action character: \'" + actionChar + "\'");
+                    break;
+            }
+
+            GameWorld.DebugPrintMapState();
+
+            float baseDelay = 1f;
+            float delay = baseDelay + (1f - PlaybackSpeed) * baseDelay;
+            yield return new WaitForSeconds(delay);
+        }
+
+        // linger on the final state for a few seconds
+        yield return new WaitForSeconds(3);
+        GameWorld.ResetMapState();
     }
 
     private void UpdateInstructions()

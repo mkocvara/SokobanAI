@@ -1,7 +1,7 @@
 import os
 import sys
 
-message = 'ULLDRDRDDRRDR\nULLDRDRUUUUU;'
+message = 'ULLDRDRDDRRDR\nULLDRDRUUUUU\nEND'
 
 outfilepath = sys.argv[1] if len(sys.argv) > 1 else os.path.dirname(os.path.realpath(__file__)) + '/ai-out.txt'
 
