@@ -43,8 +43,13 @@ public class GameController : MonoBehaviour
     private readonly string parametersJsonPath = Path.Combine(Application.streamingAssetsPath, "AI", "parameters.json");
     
     private readonly string aiOutEndLine = "END";
+    private readonly float baseMoveDelay = 0.25f;
 
-    // TODO level picker
+    /* TODO 
+     * Num of generation running (count lines in ai-out.txt and set a UI element)
+     * stop running
+     * level picker
+     */
 
     public GameController() : base()
     {
@@ -148,44 +153,7 @@ public class GameController : MonoBehaviour
 
     public void StartPlayback()
     {
-        /* TODO
-         * Write a parameters file with generations, level number, and rules            +
-         * Trigger python script                                                        +
-         * Loop through results and update game world until terminating line is found   -
-         */
-
-        UnityEngine.Debug.Log("GameController.StartPlayback(): Starting playback...");
-
-        /* // Debugging code
-        string addLine = "\n\n Application.dataPath = " + Application.dataPath + 
-                         "\n Application.absoluteURL = " + Application.absoluteURL + 
-                         "\n Application.streamingAssetsPath = " + Application.streamingAssetsPath + 
-                         "\n Runtime.PythonDLL = " + Application.streamingAssetsPath +  "/Python/python311.dll" +
-                         "\n Application.temporaryCachePath = " + Application.temporaryCachePath +
-                         "\n Application.persistentDataPath = " + Application.persistentDataPath + 
-                         "\n Application.isEditor = " + Application.isEditor +
-                         "\n Application.isMobilePlatform = " + Application.isMobilePlatform +
-                         "\n Application.isConsolePlatform = " + Application.isConsolePlatform +
-                         "\n Application.isBatchMode = " + Application.isBatchMode +
-                         "\n Level.LevelDirectory = " + Level.LevelDirectory +
-                         "\n File.Exists(Level.LevelDirectory + levelNum) = " + (File.Exists(Level.LevelDirectory + "1") ? "True" : "False")
-                         ;
-
-        addLine += "\n Directory.GetFiles(Application.streamingAssetsPath):";
-        try
-        {
-            Directory.GetFiles("/StreamingAssets/").ToList().ForEach(file => addLine += "\n - " + file);
-        }
-        catch(Exception e)
-        {
-            addLine += "\n Exception: " + e.Message;
-        }
-
-        //addLine += "\n Directory.GetFiles(Level.LevelDirectory):";
-        //Directory.GetFiles(Level.LevelDirectory).ToList().ForEach(file => addLine += "\n - " + file);
-
-        instructionsTextMesh.SetText(instructionsTextMesh.text + addLine + "\n");*/
-        
+        UnityEngine.Debug.Log("GameController.StartPlayback(): Starting playback...");        
         
         // Write parameters file
         string paramsJson = JsonUtility.ToJson(new AIParameters(currentLevel, GenerationsToRun, rules), true);
@@ -209,48 +177,6 @@ public class GameController : MonoBehaviour
 
         // Read the output file and play back
         StartCoroutine(Playback());
-
-        // Keeping the following variant in case of future need.
-        /* TODO
-         * Try putting files in StreamingAssets and see if they persist in the build    +
-         * Retrieve the path to the python script from the StreamingAssets folder       +  
-         * Read file into string    
-         * Use string to execute python code
-         * Maybe set a filepath for the resulting file
-         * Alternatively read results directly?
-         * !!! make it async
-         */
-
-        /*
-        try
-        {
-            Installer.SetupPython();
-            Runtime.PythonDLL = Application.streamingAssetsPath + "/Python/python311.dll";
-            PythonEngine.Initialize(); // do this in Start() later
-            dynamic sys = PyModule.Import("sys");
-            UnityEngine.Debug.Log("GameController.StartPlayback(): Python version: " + sys.version);
-        }
-        catch (Exception e)
-        {
-           UnityEngine.Debug.LogError("GameController.StartPlayback(): Error setting up Python: " + e.Message);
-        }
-        
-        using (Py.GIL())
-        {
-            //string code = "import os\r\n\r\nmessage = 'Hello World!'\r\nfilepath = os.path.dirname(os.path.realpath(__file__)) + '\\\\test.txt'\r\n\r\nwith open(file=filepath, mode='w') as f:\r\n    f.write(message)\r\n\r\nprint(f'\"{message}\" written in \"{filepath}\"')";
-            //PythonEngine.Exec(code);
-
-            string filePath = Application.streamingAssetsPath + "/Python/script.py";
-            
-            // add the directory to the path so that the script can import scripts from there
-            //dynamic os = Py.Import("os");
-            //dynamic sys = Py.Import("sys");
-            //sys.path.append(os.path.dirname(os.path.expanduser(filePath)));
-
-            PyObject fromFile = Py.Import(Path.GetFileNameWithoutExtension(filePath));
-            fromFile.InvokeMethod("main");
-        }
-        */
     }
 
     private IEnumerator Playback()
@@ -272,11 +198,26 @@ public class GameController : MonoBehaviour
             }
         }
 
-        using StreamReader file = new(aiOutFilePath);
+        waitCounter = 0;
 
         do
         {
-            lines = File.ReadLines(aiOutFilePath);
+            lines = File.ReadLines(aiOutFilePath); // TODO may have to be changed to ReadAllLines() if the "streaming" makes the file inaccessible by the python script
+
+            if (lines == null || !lines.Any())
+            {
+                yield return new WaitForSeconds(1);
+                waitCounter++;
+                if (waitCounter > 10)
+                {
+                    UnityEngine.Debug.LogError("GameController.StartPlayback(): AI output file is empty.");
+                    yield break;
+                }
+                continue;
+            }
+
+            waitCounter = 0;
+
             nextLine = lines.Last();
 
             // break if the terminating line is reached 
@@ -286,19 +227,25 @@ public class GameController : MonoBehaviour
             if (nextLine == playLine)
             {
                 // sleep for 2 seconds and try again
-                yield return new WaitForSeconds(2);
+                yield return new WaitForSeconds(1);
                 continue;
             }
 
             playLine = nextLine;
             yield return StartCoroutine(PlayGeneration(playLine));
+            GameWorld.ResetMapState();
         }
         while (playLine != aiOutEndLine);
 
         // get line before the terminating line and play it if it hasn't been played yet
         nextLine = lines.SkipLast(1).Last();
         if (nextLine != playLine)
+        {
             yield return StartCoroutine(PlayGeneration(playLine = nextLine));
+            // linger even longer on the final state of the final generation 
+            yield return new WaitForSeconds(baseMoveDelay * 3);
+            GameWorld.ResetMapState();
+        }
         UnityEngine.Debug.Log("GameController.StartPlayback(): Playback complete.");
     }
 
@@ -329,14 +276,12 @@ public class GameController : MonoBehaviour
 
             GameWorld.DebugPrintMapState();
 
-            float baseDelay = 1f;
-            float delay = baseDelay + (1f - PlaybackSpeed) * baseDelay;
+            float delay = baseMoveDelay + (1f - PlaybackSpeed) * baseMoveDelay;
             yield return new WaitForSeconds(delay);
         }
 
-        // linger on the final state for a few seconds
-        yield return new WaitForSeconds(3);
-        GameWorld.ResetMapState();
+        // linger on the final state of the generation for a bit longer
+        yield return new WaitForSeconds(baseMoveDelay * 2);
     }
 
     private void UpdateInstructions()
