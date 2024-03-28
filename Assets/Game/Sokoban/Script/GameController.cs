@@ -36,9 +36,10 @@ public class GameController : MonoBehaviour
     private readonly GameWorld gameWorld;
     private TextMeshProUGUI instructionsTextMesh;
 
-    private readonly string pythonExePath = Application.streamingAssetsPath + "/Python/python.exe";
-    private readonly string pythonScript = Application.streamingAssetsPath + "/AI/script.py";
-    private readonly string outFilePath = Application.streamingAssetsPath + "/AI/out.txt";
+    private readonly string pythonExePath = Path.Combine(Application.streamingAssetsPath, "Python", "python.exe");
+    private readonly string pythonScriptPath = Path.Combine(Application.streamingAssetsPath, "AI", "script.py");
+    private readonly string aiOutFilePath = Path.Combine(Application.streamingAssetsPath, "AI", "ai-out.txt");
+    private readonly string parametersJsonPath = Path.Combine(Application.streamingAssetsPath, "AI", "parameters.json");
 
     // TODO level picker + revamp level loading to use StreamingAssets (otherwise it won't work in a live build)
 
@@ -145,9 +146,9 @@ public class GameController : MonoBehaviour
     public void StartPlayback()
     {
         /* TODO
-         * Write a parameters file with generations, level number, and rules
+         * Write a parameters file with generations, level number, and rules            +
          * Trigger python script                                                        +
-         * Loop through results and update game world until terminating line is found
+         * Loop through results and update game world until terminating line is found   -
          */
 
         UnityEngine.Debug.Log("GameController.StartPlayback(): Starting playback...");
@@ -184,14 +185,14 @@ public class GameController : MonoBehaviour
         
         
         // Write parameters file
-        // TODO
-
+        string paramsJson = JsonUtility.ToJson(new AIParameters(currentLevel, GenerationsToRun, rules), true);
+        File.WriteAllText(parametersJsonPath, paramsJson);
 
         // Run the python script
         ProcessStartInfo start = new()
         {
             FileName = "\"" + pythonExePath + "\"",
-            Arguments = "\"" + pythonScript + "\" \"" + outFilePath + "\"",
+            Arguments = "\"" + pythonScriptPath + "\" \"" + aiOutFilePath + "\"",
             UseShellExecute = true,
             RedirectStandardOutput = false
         };
