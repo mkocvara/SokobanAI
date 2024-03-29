@@ -17,7 +17,6 @@ public class GameController : MonoBehaviour
     [Serializable]
     public class TypeTileDictionary : UDictionary<GameWorld.GridObjectType, TileBase> { }
 
-    public int GenerationsToRun { get; set; } = 100;
 
     // Instructions UI reference
     public GameObject InstructionsTextObject;
@@ -67,11 +66,12 @@ public class GameController : MonoBehaviour
         { 5, 0.1f }
     };
 
+    private int generationsToRun = 100;
+
     private bool playing;
     private Process aiProcess = null;
 
     /* TODO 
-     * playback speed
      * num generations to run
      * level picker
      */
@@ -141,6 +141,18 @@ public class GameController : MonoBehaviour
         playbackSpeed = (int)newSpeed;
     }
 
+    public void OnEditNumGenerations(string inputText)
+    {
+        try
+        {
+            generationsToRun = int.Parse(inputText);
+        }
+        catch
+        {
+            generationsToRun = 0;
+        }
+    }
+
     private void InitialiseActionList()
     {
         if (ActionsList == null)
@@ -199,7 +211,7 @@ public class GameController : MonoBehaviour
         UnityEngine.Debug.Log("GameController.StartPlayback(): Starting playback...");        
                         
         // Write parameters file
-        string paramsJson = JsonUtility.ToJson(new AIParameters(currentLevel, GenerationsToRun, rules), true);
+        string paramsJson = JsonUtility.ToJson(new AIParameters(currentLevel, generationsToRun, rules), true);
         File.WriteAllText(parametersJsonPath, paramsJson);
 
         // Delete the AI output file to avoid playing back an old run
