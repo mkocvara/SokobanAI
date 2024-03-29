@@ -2,4 +2,4 @@
 * text=auto
 
 # Linguist exclusions
-Assets/StreamingAssets/Python/* linguist-vendored
+Assets/StreamingAssets/Python/** linguist-vendored
