@@ -17,7 +17,6 @@ public class GameController : MonoBehaviour
     public class TypeTileDictionary : UDictionary<GameWorld.GridObjectType, TileBase> { }
 
     public int GenerationsToRun { get; set; } = 100;
-    public float PlaybackSpeed { get; set; } = 1f;
 
     // Instructions UI reference
     public GameObject InstructionsTextObject;
@@ -29,7 +28,7 @@ public class GameController : MonoBehaviour
 
     // Playback UI references
     public GameObject PlayButton;
-    public GameObject GenerationNumberTextObject;
+    public GameObject PlaybackSpeedTextObject, GenerationNumberTextObject;
 
     //public GameWorld GameWorld { get { return gameWorld; } }
 
@@ -40,8 +39,9 @@ public class GameController : MonoBehaviour
     private Dictionary<GameRule.ActionType, GameObject> actionTypeToActionItem = new();
 
     private readonly GameWorld gameWorld;
-    private TextMeshProUGUI instructionsTextMesh;
-    private TextMeshProUGUI generationNumberTextMesh;
+    private TextMeshProUGUI instructionsTextMesh, generationNumberTextMesh, playbackSpeedTextMesh;
+
+    private float playbackSpeed = 1f;
 
     private readonly string pythonExePath = Path.Combine(Application.streamingAssetsPath, "Python", "python.exe");
     private readonly string pythonScriptPath = Path.Combine(Application.streamingAssetsPath, "AI", "script.py");
@@ -55,8 +55,6 @@ public class GameController : MonoBehaviour
     private Process aiProcess = null;
 
     /* TODO 
-     * Num of generation running (count lines in ai-out.txt and set a UI element)
-     * stop running
      * playback speed
      * num generations to run
      * level picker
@@ -71,6 +69,7 @@ public class GameController : MonoBehaviour
     {
         instructionsTextMesh = InstructionsTextObject.GetComponent<TextMeshProUGUI>();
         generationNumberTextMesh = GenerationNumberTextObject.GetComponent<TextMeshProUGUI>();
+        playbackSpeedTextMesh = PlaybackSpeedTextObject.GetComponent<TextMeshProUGUI>();
 
         InitialiseActionList();
         InitialiseRulesList();
@@ -78,6 +77,52 @@ public class GameController : MonoBehaviour
         OpenLevel(currentLevel);
 
         PlayButton.GetComponent<Button>().onClick.AddListener(OnPlayButtonClicked);
+        SetPlaybackSpeed(playbackSpeed);
+    }
+
+    public void OpenLevel(int level)
+    {
+        if (level < 1 || level > levels.Count)
+        {
+            UnityEngine.Debug.LogError("GameController.OpenLevel(): Level " + level + " does not exist.");
+            return;
+        }
+
+        gameWorld.SetLevel(levels[level-1]);
+        currentLevel = level;
+        UpdateInstructions();
+    }
+
+    public void AddNewRule(GameRule.ActionType actionType)
+    {
+        GameObject ruleItem = Instantiate(RulePrefab, RulesList.transform);
+        GameRule rule = ruleItem.GetComponent<GameRule>();
+        // Debug.Log("GameController.AddNewRule(): New rule successful? " + rule != null ? "True" : "False");
+        rule.Init(actionType);
+        rules.Add(rule);
+
+        ruleItem.GetComponentInChildren<Button>().onClick.AddListener(() => RemoveRule(ruleItem, rule));
+
+        actionTypeToActionItem[actionType].SetActive(false);
+        
+        // check if all actions are now in use and show hint if so
+        if (actionTypeToActionItem.Values.All(item => !item.activeSelf))
+            NoActionsLeftHint.SetActive(true);
+    }
+
+    public void RemoveRule(GameObject ruleObject, GameRule rule)
+    {
+        rules.Remove(rule);
+        Destroy(ruleObject);
+
+        actionTypeToActionItem[rule.Action].SetActive(true);
+        NoActionsLeftHint.SetActive(false);
+    }
+
+    public void SetPlaybackSpeed(float newSpeed)
+    {
+        playbackSpeed = newSpeed;
+        playbackSpeedTextMesh.text = playbackSpeed.ToString("0.00") + "x";
     }
 
     private void InitialiseActionList()
@@ -123,45 +168,6 @@ public class GameController : MonoBehaviour
 
         // If no cached rules, add a default rules
         // TODO
-    }
-
-    public void OpenLevel(int level)
-    {
-        if (level < 1 || level > levels.Count)
-        {
-            UnityEngine.Debug.LogError("GameController.OpenLevel(): Level " + level + " does not exist.");
-            return;
-        }
-
-        gameWorld.SetLevel(levels[level-1]);
-        currentLevel = level;
-        UpdateInstructions();
-    }
-
-    public void AddNewRule(GameRule.ActionType actionType)
-    {
-        GameObject ruleItem = Instantiate(RulePrefab, RulesList.transform);
-        GameRule rule = ruleItem.GetComponent<GameRule>();
-        // Debug.Log("GameController.AddNewRule(): New rule successful? " + rule != null ? "True" : "False");
-        rule.Init(actionType);
-        rules.Add(rule);
-
-        ruleItem.GetComponentInChildren<Button>().onClick.AddListener(() => RemoveRule(ruleItem, rule));
-
-        actionTypeToActionItem[actionType].SetActive(false);
-        
-        // check if all actions are now in use and show hint if so
-        if (actionTypeToActionItem.Values.All(item => !item.activeSelf))
-            NoActionsLeftHint.SetActive(true);
-    }
-
-    public void RemoveRule(GameObject ruleObject, GameRule rule)
-    {
-        rules.Remove(rule);
-        Destroy(ruleObject);
-
-        actionTypeToActionItem[rule.Action].SetActive(true);
-        NoActionsLeftHint.SetActive(false);
     }
 
     private void OnPlayButtonClicked()
@@ -322,7 +328,7 @@ public class GameController : MonoBehaviour
 
             gameWorld.DebugPrintMapState();
 
-            float delay = baseMoveDelay + (1f - PlaybackSpeed) * baseMoveDelay;
+            float delay = baseMoveDelay + (1f - playbackSpeed) * baseMoveDelay; // TODO fix
             yield return new WaitForSeconds(delay);
         }
 
