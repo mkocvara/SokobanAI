@@ -16,17 +16,22 @@ public class GameController : MonoBehaviour
     [Serializable]
     public class TypeTileDictionary : UDictionary<GameWorld.GridObjectType, TileBase> { }
 
-    public int GenerationsToRun = 100;
-    public float PlaybackSpeed = 1f;
+    public int GenerationsToRun { get; set; } = 100;
+    public float PlaybackSpeed { get; set; } = 1f;
 
+    // Instructions UI reference
     public GameObject InstructionsTextObject;
 
-    public GameObject PlayButton;
+    // Rules UI references
     public GameObject NewRuleSetup, NoActionsLeftHint;
     public GameObject RulesList, ActionsList;
     public GameObject ActionItemPrefab, RulePrefab;
 
-    public GameWorld GameWorld { get { return gameWorld; } }
+    // Playback UI references
+    public GameObject PlayButton;
+    public GameObject GenerationNumberTextObject;
+
+    //public GameWorld GameWorld { get { return gameWorld; } }
 
     private List<Level> levels = new();
     private int currentLevel = 1;
@@ -36,6 +41,7 @@ public class GameController : MonoBehaviour
 
     private readonly GameWorld gameWorld;
     private TextMeshProUGUI instructionsTextMesh;
+    private TextMeshProUGUI generationNumberTextMesh;
 
     private readonly string pythonExePath = Path.Combine(Application.streamingAssetsPath, "Python", "python.exe");
     private readonly string pythonScriptPath = Path.Combine(Application.streamingAssetsPath, "AI", "script.py");
@@ -45,9 +51,14 @@ public class GameController : MonoBehaviour
     private readonly string aiOutEndLine = "END";
     private readonly float baseMoveDelay = 0.25f;
 
+    private bool playing;
+    private Process aiProcess = null;
+
     /* TODO 
      * Num of generation running (count lines in ai-out.txt and set a UI element)
      * stop running
+     * playback speed
+     * num generations to run
      * level picker
      */
 
@@ -59,12 +70,14 @@ public class GameController : MonoBehaviour
     void Start()
     {
         instructionsTextMesh = InstructionsTextObject.GetComponent<TextMeshProUGUI>();
+        generationNumberTextMesh = GenerationNumberTextObject.GetComponent<TextMeshProUGUI>();
+
         InitialiseActionList();
         InitialiseRulesList();
         LoadAllLevels();
         OpenLevel(currentLevel);
 
-        PlayButton.GetComponent<Button>().onClick.AddListener(StartPlayback);
+        PlayButton.GetComponent<Button>().onClick.AddListener(OnPlayButtonClicked);
     }
 
     private void InitialiseActionList()
@@ -151,10 +164,18 @@ public class GameController : MonoBehaviour
         NoActionsLeftHint.SetActive(false);
     }
 
-    public void StartPlayback()
+    private void OnPlayButtonClicked()
+    {
+        if (!playing)
+            StartPlayback();
+        else
+            EndPlayback();
+    }
+
+    private void StartPlayback()
     {
         UnityEngine.Debug.Log("GameController.StartPlayback(): Starting playback...");        
-        
+                        
         // Write parameters file
         string paramsJson = JsonUtility.ToJson(new AIParameters(currentLevel, GenerationsToRun, rules), true);
         File.WriteAllText(parametersJsonPath, paramsJson);
@@ -162,26 +183,32 @@ public class GameController : MonoBehaviour
         // Delete the AI output file to avoid playing back an old run
         File.Delete(aiOutFilePath);
 
+        // Generation number on the UI
+        SetCurrentGeneration(0);
+
         // Run the python script
         ProcessStartInfo start = new()
         {
             FileName = "\"" + pythonExePath + "\"",
             Arguments = "\"" + pythonScriptPath + "\" \"" + aiOutFilePath + "\"",
             UseShellExecute = true,
-            RedirectStandardOutput = false
+            RedirectStandardOutput = false,
+            CreateNoWindow = true,
+            WindowStyle = ProcessWindowStyle.Hidden
         };
 
         UnityEngine.Debug.Log("GameController.StartPlayback(): filename = " + start.FileName + "; args = " + start.Arguments);
         UnityEngine.Debug.Log("GameController.StartPlayback(): Starting python process...");
-        Process.Start(start);
+        aiProcess = Process.Start(start);
 
         // Read the output file and play back
-        StartCoroutine(Playback());
+        StartCoroutine(PlaybackLoop());
+        playing = true;
     }
 
-    private IEnumerator Playback()
+    private IEnumerator PlaybackLoop()
     {
-        GameWorld.DebugPrintMapState();
+        gameWorld.DebugPrintMapState();
 
         IEnumerable<string> lines;
         string playLine = "", nextLine;
@@ -232,8 +259,10 @@ public class GameController : MonoBehaviour
             }
 
             playLine = nextLine;
+            SetCurrentGeneration(lines.Count());
             yield return StartCoroutine(PlayGeneration(playLine));
-            GameWorld.ResetMapState();
+
+            gameWorld.ResetMapState();
         }
         while (playLine != aiOutEndLine);
 
@@ -241,12 +270,29 @@ public class GameController : MonoBehaviour
         nextLine = lines.SkipLast(1).Last();
         if (nextLine != playLine)
         {
+            SetCurrentGeneration(lines.Count() - 1); // -1 to accound for the terminating line
             yield return StartCoroutine(PlayGeneration(playLine = nextLine));
             // linger even longer on the final state of the final generation 
             yield return new WaitForSeconds(baseMoveDelay * 3);
-            GameWorld.ResetMapState();
         }
+
         UnityEngine.Debug.Log("GameController.StartPlayback(): Playback complete.");
+        
+        PlayButton.GetComponent<PlayButton>().Toggle();
+        EndPlayback();
+    }
+
+    private void SetCurrentGeneration(int genNum)
+    {
+        //UnityEngine.Debug.Log("GameController.StartPlayback(): Playing back generation " + generation + "...");
+
+        if (genNum == 0)
+        {
+            generationNumberTextMesh.text = "-";
+            return;
+        }
+
+        generationNumberTextMesh.text = genNum.ToString();
     }
 
     private IEnumerator PlayGeneration(string playLine)
@@ -258,23 +304,23 @@ public class GameController : MonoBehaviour
             switch (actionChar)
             {
                 case 'U':
-                    GameWorld.MakeMove(GameWorld.MoveDir.Up);
+                    gameWorld.MakeMove(GameWorld.MoveDir.Up);
                     break;
                 case 'D':
-                    GameWorld.MakeMove(GameWorld.MoveDir.Down);
+                    gameWorld.MakeMove(GameWorld.MoveDir.Down);
                     break;
                 case 'L':
-                    GameWorld.MakeMove(GameWorld.MoveDir.Left);
+                    gameWorld.MakeMove(GameWorld.MoveDir.Left);
                     break;
                 case 'R':
-                    GameWorld.MakeMove(GameWorld.MoveDir.Right);
+                    gameWorld.MakeMove(GameWorld.MoveDir.Right);
                     break;
                 default:
                     UnityEngine.Debug.LogWarning("GameController.PlayGeneration(): Invalid action character: \'" + actionChar + "\'");
                     break;
             }
 
-            GameWorld.DebugPrintMapState();
+            gameWorld.DebugPrintMapState();
 
             float delay = baseMoveDelay + (1f - PlaybackSpeed) * baseMoveDelay;
             yield return new WaitForSeconds(delay);
@@ -282,6 +328,25 @@ public class GameController : MonoBehaviour
 
         // linger on the final state of the generation for a bit longer
         yield return new WaitForSeconds(baseMoveDelay * 2);
+    }
+    
+    private void EndPlayback()
+    {
+        if (aiProcess != null)
+        {
+            aiProcess.Refresh();
+            if (!aiProcess.HasExited)
+            {
+                aiProcess.Kill();
+                aiProcess.Close();
+            }
+
+            aiProcess = null;
+        }
+
+        StopAllCoroutines();
+        playing = false;
+        gameWorld.ResetMapState();
     }
 
     private void UpdateInstructions()
