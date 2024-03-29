@@ -8,6 +8,7 @@ using UnityEngine;
 using UnityEngine.Tilemaps;
 using UnityEngine.UI;
 using System.Collections;
+using static GameWorld;
 
 public class GameController : MonoBehaviour
 {
@@ -32,24 +33,39 @@ public class GameController : MonoBehaviour
 
     //public GameWorld GameWorld { get { return gameWorld; } }
 
-    private List<Level> levels = new();
-    private int currentLevel = 1;
-
-    private List<GameRule> rules = new();
-    private Dictionary<GameRule.ActionType, GameObject> actionTypeToActionItem = new();
-
     private readonly GameWorld gameWorld;
     private TextMeshProUGUI instructionsTextMesh, generationNumberTextMesh, playbackSpeedTextMesh;
-
-    private float playbackSpeed = 1f;
 
     private readonly string pythonExePath = Path.Combine(Application.streamingAssetsPath, "Python", "python.exe");
     private readonly string pythonScriptPath = Path.Combine(Application.streamingAssetsPath, "AI", "script.py");
     private readonly string aiOutFilePath = Path.Combine(Application.streamingAssetsPath, "AI", "ai-out.txt");
     private readonly string parametersJsonPath = Path.Combine(Application.streamingAssetsPath, "AI", "parameters.json");
     
-    private readonly string aiOutEndLine = "END";
-    private readonly float baseMoveDelay = 0.25f;
+    private const string aiOutEndLine = "END";
+
+    private List<Level> levels = new();
+    private int currentLevel = 1;
+
+    private List<GameRule> rules = new();
+    private Dictionary<GameRule.ActionType, GameObject> actionTypeToActionItem = new();
+
+    private float CurrentMoveDelay { 
+        get 
+        { 
+            return playbackSpeedToMoveDelay.Keys.Contains(playbackSpeed) 
+                ? playbackSpeedToMoveDelay[playbackSpeed] 
+                : playbackSpeedToMoveDelay[playbackSpeedToMoveDelay.Count()]; 
+        } 
+    }
+
+    private int playbackSpeed = 3;
+    private readonly Dictionary<int, float> playbackSpeedToMoveDelay = new() {
+        { 1, 3.0f },
+        { 2, 1.0f },
+        { 3, 0.5f },
+        { 4, 0.25f },
+        { 5, 0.1f }
+    };
 
     private bool playing;
     private Process aiProcess = null;
@@ -78,6 +94,7 @@ public class GameController : MonoBehaviour
 
         PlayButton.GetComponent<Button>().onClick.AddListener(OnPlayButtonClicked);
         SetPlaybackSpeed(playbackSpeed);
+        playbackSpeedTextMesh.text = playbackSpeed.ToString();
     }
 
     public void OpenLevel(int level)
@@ -121,8 +138,7 @@ public class GameController : MonoBehaviour
 
     public void SetPlaybackSpeed(float newSpeed)
     {
-        playbackSpeed = newSpeed;
-        playbackSpeedTextMesh.text = playbackSpeed.ToString("0.00") + "x";
+        playbackSpeed = (int)newSpeed;
     }
 
     private void InitialiseActionList()
@@ -235,7 +251,7 @@ public class GameController : MonoBehaviour
 
         do
         {
-            lines = File.ReadLines(aiOutFilePath); // TODO may have to be changed to ReadAllLines() if the "streaming" makes the file inaccessible by the python script
+            lines = File.ReadLines(aiOutFilePath); 
 
             if (lines == null || !lines.Any())
             {
@@ -259,7 +275,7 @@ public class GameController : MonoBehaviour
 
             if (nextLine == playLine)
             {
-                // sleep for 2 seconds and try again
+                // sleep for a second and try again
                 yield return new WaitForSeconds(1);
                 continue;
             }
@@ -278,8 +294,9 @@ public class GameController : MonoBehaviour
         {
             SetCurrentGeneration(lines.Count() - 1); // -1 to accound for the terminating line
             yield return StartCoroutine(PlayGeneration(playLine = nextLine));
+
             // linger even longer on the final state of the final generation 
-            yield return new WaitForSeconds(baseMoveDelay * 3);
+            yield return new WaitForSeconds(CurrentMoveDelay * 3);
         }
 
         UnityEngine.Debug.Log("GameController.StartPlayback(): Playback complete.");
@@ -310,16 +327,16 @@ public class GameController : MonoBehaviour
             switch (actionChar)
             {
                 case 'U':
-                    gameWorld.MakeMove(GameWorld.MoveDir.Up);
+                    gameWorld.MakeMove(MoveDir.Up);
                     break;
                 case 'D':
-                    gameWorld.MakeMove(GameWorld.MoveDir.Down);
+                    gameWorld.MakeMove(MoveDir.Down);
                     break;
                 case 'L':
-                    gameWorld.MakeMove(GameWorld.MoveDir.Left);
+                    gameWorld.MakeMove(MoveDir.Left);
                     break;
                 case 'R':
-                    gameWorld.MakeMove(GameWorld.MoveDir.Right);
+                    gameWorld.MakeMove(MoveDir.Right);
                     break;
                 default:
                     UnityEngine.Debug.LogWarning("GameController.PlayGeneration(): Invalid action character: \'" + actionChar + "\'");
@@ -328,12 +345,15 @@ public class GameController : MonoBehaviour
 
             gameWorld.DebugPrintMapState();
 
-            float delay = baseMoveDelay + (1f - playbackSpeed) * baseMoveDelay; // TODO fix
-            yield return new WaitForSeconds(delay);
+            // Halt playback if the user sets speed to 0
+            while (playbackSpeed == 0)
+                yield return new WaitForSeconds(0.5f);
+
+            yield return new WaitForSeconds(CurrentMoveDelay);
         }
 
         // linger on the final state of the generation for a bit longer
-        yield return new WaitForSeconds(baseMoveDelay * 2);
+        yield return new WaitForSeconds(CurrentMoveDelay * 2);
     }
     
     private void EndPlayback()
