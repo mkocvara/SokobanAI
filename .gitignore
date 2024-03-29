@@ -72,5 +72,11 @@ crashlytics-build.properties
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
 
+# Project specific
+ai-out.txt
+ai-out.txt.meta
+parameters.json
+parameters.json.meta
+
 # Exclude tag
 *nogit*
