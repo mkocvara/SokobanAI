@@ -30,8 +30,6 @@ public class GameController : MonoBehaviour
     public GameObject PlayButton;
     public GameObject PlaybackSpeedTextObject, GenerationNumberTextObject;
 
-    //public GameWorld GameWorld { get { return gameWorld; } }
-
     private readonly GameWorld gameWorld;
     private TextMeshProUGUI instructionsTextMesh, generationNumberTextMesh, playbackSpeedTextMesh;
 
@@ -72,7 +70,6 @@ public class GameController : MonoBehaviour
     private Process aiProcess = null;
 
     /* TODO 
-     * num generations to run
      * level picker
      */
 
@@ -101,7 +98,7 @@ public class GameController : MonoBehaviour
     {
         if (level < 1 || level > levels.Count)
         {
-            UnityEngine.Debug.LogError("GameController.OpenLevel(): Level " + level + " does not exist.");
+            UnityEngine.Debug.LogWarning("GameController.OpenLevel(): Level " + level + " does not exist.");
             return;
         }
 
@@ -151,6 +148,17 @@ public class GameController : MonoBehaviour
         {
             generationsToRun = 0;
         }
+    }
+
+    public void QuitToDesktop()
+    {
+        EndPlayback();
+
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#endif
+
+        Application.Quit();
     }
 
     private void InitialiseActionList()

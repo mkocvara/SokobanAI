@@ -16,10 +16,10 @@ MonoBehaviour:
   material: {fileID: 5322996473105910428}
   materialHashCode: 1038214960
   m_Version: 1.1.0
-  m_SourceFontFileGUID: e7d9914c6bfa97343bb0b02d5bd7e6f4
-  m_SourceFontFile_EditorRef: {fileID: 12800000, guid: e7d9914c6bfa97343bb0b02d5bd7e6f4, type: 3}
-  m_SourceFontFile: {fileID: 12800000, guid: e7d9914c6bfa97343bb0b02d5bd7e6f4, type: 3}
-  m_AtlasPopulationMode: 1
+  m_SourceFontFileGUID: 9dbda1d592e0c4e41b1b1f8e38c02220
+  m_SourceFontFile_EditorRef: {fileID: 12800000, guid: 9dbda1d592e0c4e41b1b1f8e38c02220, type: 3}
+  m_SourceFontFile: {fileID: 0}
+  m_AtlasPopulationMode: 0
   m_FaceInfo:
     m_FaceIndex: 0
     m_FamilyName: Segoe UI Symbol
@@ -235,7 +235,7 @@ Texture2D:
   m_MipsStripped: 0
   m_TextureFormat: 1
   m_MipCount: 1
-  m_IsReadable: 1
+  m_IsReadable: 0
   m_IsPreProcessed: 0
   m_IgnoreMipmapLimit: 0
   m_MipmapLimitGroupName: 
