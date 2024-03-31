@@ -51,4 +51,12 @@ public class PlayButton : MonoBehaviour
         
         playing = !playing;
     }
+
+    public void SetPlaying(bool playing)
+    {
+        if (this.playing == playing)
+            return;
+
+        Toggle();
+    }
 }

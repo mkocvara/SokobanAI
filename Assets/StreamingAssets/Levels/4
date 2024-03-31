@@ -1,14 +1,14 @@
 N
-Test Level 2
+Test Level 4
 M
 #######
-#..B..#
+#..x..#
+#..#..#
+#..b..#
+#.....#
 #..p..#
-#.....#
-#.....#
-#.....#
 #######
 I
 These are instructions loaded from a level file.
 
-Woo!
+Howay!

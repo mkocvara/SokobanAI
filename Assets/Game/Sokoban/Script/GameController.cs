@@ -12,26 +12,29 @@ using static GameWorld;
 
 public class GameController : MonoBehaviour
 {
-    [UDictionary.Split(30, 70)]
-    public TypeTileDictionary TypeTileAssociation;
-    [Serializable]
-    public class TypeTileDictionary : UDictionary<GameWorld.GridObjectType, TileBase> { }
-
-
-    // Instructions UI reference
-    public GameObject InstructionsTextObject;
+    public bool PausePlayback { get 
+        {
+            bool paused = MainMenu.activeSelf || LevelPicker.activeSelf || playbackSpeed == 0;
+            playbackPlayingLabelTextObject.text = paused ? "Paused." : "Playing...";
+            return paused; 
+        } 
+    }
 
     // Rules UI references
     public GameObject NewRuleSetup, NoActionsLeftHint;
     public GameObject RulesList, ActionsList;
     public GameObject ActionItemPrefab, RulePrefab;
+    public GameObject MainMenu;
 
     // Playback UI references
-    public GameObject PlayButton;
-    public GameObject PlaybackSpeedTextObject, GenerationNumberTextObject;
+    public GameObject PlayButtonObject;
+    public GameObject PlaybackSpeedTextObject, PlaybackPlayingLabelTextObject, GenerationNumberTextObject;
 
-    private readonly GameWorld gameWorld;
-    private TextMeshProUGUI instructionsTextMesh, generationNumberTextMesh, playbackSpeedTextMesh;
+    // Other references
+    public GameObject LevelPicker;
+
+    private PlayButton playButton;
+    private TextMeshProUGUI generationNumberTextMesh, playbackSpeedTextMesh, playbackPlayingLabelTextObject;
 
     private readonly string pythonExePath = Path.Combine(Application.streamingAssetsPath, "Python", "python.exe");
     private readonly string pythonScriptPath = Path.Combine(Application.streamingAssetsPath, "AI", "script.py");
@@ -40,8 +43,8 @@ public class GameController : MonoBehaviour
     
     private const string aiOutEndLine = "END";
 
-    private List<Level> levels = new();
-    private int currentLevel = 1;
+    private GameWorld gameWorld;
+    private LevelManager levelManager;
 
     private List<GameRule> rules = new();
     private Dictionary<GameRule.ActionType, GameObject> actionTypeToActionItem = new();
@@ -70,41 +73,42 @@ public class GameController : MonoBehaviour
     private Process aiProcess = null;
 
     /* TODO 
-     * level picker
+     * level completion
+     * rules manager
+     * ruleset saving
+     * solve level button
      */
-
-    public GameController() : base()
-    {
-        gameWorld = new GameWorld(this);
-    }
 
     void Start()
     {
-        instructionsTextMesh = InstructionsTextObject.GetComponent<TextMeshProUGUI>();
         generationNumberTextMesh = GenerationNumberTextObject.GetComponent<TextMeshProUGUI>();
         playbackSpeedTextMesh = PlaybackSpeedTextObject.GetComponent<TextMeshProUGUI>();
+        playbackPlayingLabelTextObject = PlaybackPlayingLabelTextObject.GetComponent<TextMeshProUGUI>();
+        playButton = PlayButtonObject.GetComponent<PlayButton>();
+
+        levelManager = FindObjectOfType<LevelManager>();
+        gameWorld = FindObjectOfType<GameWorld>();
 
         InitialiseActionList();
         InitialiseRulesList();
-        LoadAllLevels();
-        OpenLevel(currentLevel);
 
-        PlayButton.GetComponent<Button>().onClick.AddListener(OnPlayButtonClicked);
+        PlayButtonObject.GetComponent<Button>().onClick.AddListener(OnPlayButtonClicked);
         SetPlaybackSpeed(playbackSpeed);
         playbackSpeedTextMesh.text = playbackSpeed.ToString();
     }
 
-    public void OpenLevel(int level)
+    private void Update()
     {
-        if (level < 1 || level > levels.Count)
-        {
-            UnityEngine.Debug.LogWarning("GameController.OpenLevel(): Level " + level + " does not exist.");
-            return;
-        }
+        if (Input.GetKeyDown(KeyCode.Space) && !LevelPicker.activeSelf && !MainMenu.activeSelf)
+            OnPlayButtonClicked();
 
-        gameWorld.SetLevel(levels[level-1]);
-        currentLevel = level;
-        UpdateInstructions();
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            if (LevelPicker.activeSelf)
+                LevelPicker.SetActive(false);
+            else
+                MainMenu.SetActive(!MainMenu.activeSelf);
+        }
     }
 
     public void AddNewRule(GameRule.ActionType actionType)
@@ -159,6 +163,12 @@ public class GameController : MonoBehaviour
 #endif
 
         Application.Quit();
+    }
+
+    public void ChangeLevel(int levelNumber)
+    {
+        EndPlayback();
+        levelManager.OpenLevel(levelNumber);
     }
 
     private void InitialiseActionList()
@@ -217,9 +227,11 @@ public class GameController : MonoBehaviour
     private void StartPlayback()
     {
         UnityEngine.Debug.Log("GameController.StartPlayback(): Starting playback...");        
-                        
+        
+        playButton.SetPlaying(true);
+
         // Write parameters file
-        string paramsJson = JsonUtility.ToJson(new AIParameters(currentLevel, generationsToRun, rules), true);
+        string paramsJson = JsonUtility.ToJson(new AIParameters(levelManager.CurrentLevelNumber, generationsToRun, rules), true);
         File.WriteAllText(parametersJsonPath, paramsJson);
 
         // Delete the AI output file to avoid playing back an old run
@@ -321,7 +333,6 @@ public class GameController : MonoBehaviour
 
         UnityEngine.Debug.Log("GameController.StartPlayback(): Playback complete.");
         
-        PlayButton.GetComponent<PlayButton>().Toggle();
         EndPlayback();
     }
 
@@ -366,7 +377,7 @@ public class GameController : MonoBehaviour
             gameWorld.DebugPrintMapState();
 
             // Halt playback if the user sets speed to 0
-            while (playbackSpeed == 0)
+            while (PausePlayback)
                 yield return new WaitForSeconds(0.5f);
 
             yield return new WaitForSeconds(CurrentMoveDelay);
@@ -392,34 +403,7 @@ public class GameController : MonoBehaviour
 
         StopAllCoroutines();
         playing = false;
+        playButton.SetPlaying(false);
         gameWorld.ResetMapState();
-    }
-
-    private void UpdateInstructions()
-    {
-        if (instructionsTextMesh == null)
-        {
-            UnityEngine.Debug.LogError("GameController.UpdateInstructions(): Instructions text mesh not set.");
-            return;
-        }
-
-        //instructionsTextMesh.SetText("Level " + levels[currentLevel-1].LevelNumber + "\n\n" + 
-        //    "MapName: " + levels[currentLevel - 1].MapName + "\n\n" +
-        //    "MapString: " + levels[currentLevel - 1].MapString + "\n\n" +
-        //    "Instructios: " + levels[currentLevel - 1].Instructions);
-        instructionsTextMesh.SetText(levels[currentLevel-1].Instructions);
-    }
-
-    private void LoadAllLevels()
-    {
-        // NOTE if we want to stick with WebGL, must use UnityWebRequest to load files
-        // https://docs.unity3d.com/ScriptReference/Networking.UnityWebRequest.html
-
-        int levelNum = 1;
-        while (File.Exists(Level.LevelDirectory + levelNum))
-        {
-            levels.Add(new Level(levelNum));
-            levelNum++;
-        }
     }
 }

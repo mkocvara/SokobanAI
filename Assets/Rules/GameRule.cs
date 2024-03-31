@@ -31,6 +31,7 @@ public class GameRule : MonoBehaviour
 
     private void Start()
     {
+        // Hide until initialised
         if (!initialised) gameObject.SetActive(false);
     }
 

@@ -6,7 +6,7 @@ using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
-public class GameWorld
+public class GameWorld : MonoBehaviour
 {
     public enum MoveDir
     {
@@ -35,18 +35,18 @@ public class GameWorld
         public Tilemap Tilemap { get; private set; }
 
         private GridObjectType[,] state;
-        private readonly GameController gameController;
+        private readonly GameWorld gameWorld;
 
-        public MapState(GameController gameController, int2 mapSize)
+        public MapState(GameWorld gameWorld, int2 mapSize)
         {
             MapSize = mapSize;
             state = new GridObjectType[mapSize.y, mapSize.x];
-            this.gameController = gameController;
+            this.gameWorld = gameWorld;
 
             InitMap();
         }
 
-        public MapState(GameController gameController, int mapSizeX, int mapSizeY) : this(gameController, new int2(mapSizeX, mapSizeY)) { }
+        public MapState(GameWorld gameWorld, int mapSizeX, int mapSizeY) : this(gameWorld, new int2(mapSizeX, mapSizeY)) { }
 
         public void SetGridObject(GridObjectType gridObject, int x, int y)
         {
@@ -56,13 +56,13 @@ public class GameWorld
                 return;
 
             // Set tile on the tilemap
-            if (!gameController.TypeTileAssociation.ContainsKey(gridObject))
+            if (!gameWorld.TypeTileAssociation.ContainsKey(gridObject))
             {
                 Debug.LogError("MapState.SetGridObject(): Can't find tile associated with action \'" + gridObject.ToDescription() + "\'");
                 return;
             }
 
-            TileBase tile = gameController.TypeTileAssociation[gridObject];
+            TileBase tile = gameWorld.TypeTileAssociation[gridObject];
 
             // > Invert the y axis because Unity's tilemap has the origin at the bottom left
             int tilePosX = x;
@@ -93,6 +93,12 @@ public class GameWorld
         }
     }
 
+    // Associate a type of object with a tile in editor
+    [UDictionary.Split(30, 70)]
+    public TypeTileDictionary TypeTileAssociation;
+    [Serializable]
+    public class TypeTileDictionary : UDictionary<GridObjectType, TileBase> { }
+
     private readonly Dictionary<char, GridObjectType> objectTypeSymbolPairs = new()
     {
         { '#', GridObjectType.Wall },
@@ -107,15 +113,8 @@ public class GameWorld
         { ' ', GridObjectType.None },
     };
 
-    private readonly GameController gameController;
-
     private MapState mapState;
     private Level currentLevel;
-
-    public GameWorld(GameController gameController)
-    {
-        this.gameController = gameController;
-    }
 
     public void SetLevel(Level level)
     {
@@ -137,7 +136,7 @@ public class GameWorld
                 rows[i] = rows[i].PadRight(longestRow, ' ');
         }
 
-        mapState = new(gameController, rows[0].Length, rows.Length);
+        mapState = new(this, rows[0].Length, rows.Length);
 
         for (int x = 0; x < mapState.MapSize.x; x++)
         {

@@ -1,14 +1,14 @@
 N
-Test Level 2
+Test Level 6
 M
 #######
-#..B..#
-#..p..#
-#.....#
-#.....#
-#.....#
+#.x#..#
+#x..#.#
+##.b..#
+##b...#
+#....p#
 #######
 I
 These are instructions loaded from a level file.
 
-Woo!
+Eyy!
