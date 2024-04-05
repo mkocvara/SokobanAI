@@ -43,7 +43,8 @@ public class GameRule : MonoBehaviour
         this.action = action;
         this.reward = reward;
 
-        SetActionName();
+        actionNameText.text = action.ToDescription();
+        rewardInput.text = reward.ToString();
 
         initialised = true;
         if (!gameObject.activeSelf) gameObject.SetActive(true);
@@ -61,10 +62,5 @@ public class GameRule : MonoBehaviour
         }
 
         // Debug.Log("GameRule.OnEditReward(): Reward for " + action.ToDescription() + " set to " + reward);
-    }
-
-    private void SetActionName()
-    {
-        actionNameText.text = action.ToDescription();
     }
 }

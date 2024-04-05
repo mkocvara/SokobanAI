@@ -15,26 +15,21 @@ public class GameController : MonoBehaviour
     public bool PausePlayback { get 
         {
             bool paused = MainMenu.activeSelf || LevelPicker.activeSelf || playbackSpeed == 0;
-            playbackPlayingLabelTextObject.text = paused ? "Paused." : "Playing...";
+            playbackPlayingLabelTextMesh.text = paused ? "Paused." : "Playing...";
             return paused; 
         } 
     }
-
-    // Rules UI references
-    public GameObject NewRuleSetup, NoActionsLeftHint;
-    public GameObject RulesList, ActionsList;
-    public GameObject ActionItemPrefab, RulePrefab;
-    public GameObject MainMenu;
 
     // Playback UI references
     public GameObject PlayButtonObject;
     public GameObject PlaybackSpeedTextObject, PlaybackPlayingLabelTextObject, GenerationNumberTextObject;
 
     // Other references
+    public GameObject MainMenu;
     public GameObject LevelPicker;
 
     private PlayButton playButton;
-    private TextMeshProUGUI generationNumberTextMesh, playbackSpeedTextMesh, playbackPlayingLabelTextObject;
+    private TextMeshProUGUI generationNumberTextMesh, playbackSpeedTextMesh, playbackPlayingLabelTextMesh;
 
     private readonly string pythonExePath = Path.Combine(Application.streamingAssetsPath, "Python", "python.exe");
     private readonly string pythonScriptPath = Path.Combine(Application.streamingAssetsPath, "AI", "script.py");
@@ -45,9 +40,7 @@ public class GameController : MonoBehaviour
 
     private GameWorld gameWorld;
     private LevelManager levelManager;
-
-    private List<GameRule> rules = new();
-    private Dictionary<GameRule.ActionType, GameObject> actionTypeToActionItem = new();
+    private RulesManager rulesManager;
 
     private float CurrentMoveDelay { 
         get 
@@ -73,24 +66,23 @@ public class GameController : MonoBehaviour
     private Process aiProcess = null;
 
     /* TODO 
-     * level completion
-     * rules manager
-     * ruleset saving
+     * Integrate actual AI script
      * solve level button
+     * level completion
+     * Fix UI not scaling right
+     * On quit: auto save ruleset, save level completion status
      */
 
     void Start()
     {
         generationNumberTextMesh = GenerationNumberTextObject.GetComponent<TextMeshProUGUI>();
         playbackSpeedTextMesh = PlaybackSpeedTextObject.GetComponent<TextMeshProUGUI>();
-        playbackPlayingLabelTextObject = PlaybackPlayingLabelTextObject.GetComponent<TextMeshProUGUI>();
+        playbackPlayingLabelTextMesh = PlaybackPlayingLabelTextObject.GetComponent<TextMeshProUGUI>();
         playButton = PlayButtonObject.GetComponent<PlayButton>();
 
-        levelManager = FindObjectOfType<LevelManager>();
         gameWorld = FindObjectOfType<GameWorld>();
-
-        InitialiseActionList();
-        InitialiseRulesList();
+        levelManager = FindObjectOfType<LevelManager>();
+        rulesManager = FindObjectOfType<RulesManager>();
 
         PlayButtonObject.GetComponent<Button>().onClick.AddListener(OnPlayButtonClicked);
         SetPlaybackSpeed(playbackSpeed);
@@ -109,32 +101,6 @@ public class GameController : MonoBehaviour
             else
                 MainMenu.SetActive(!MainMenu.activeSelf);
         }
-    }
-
-    public void AddNewRule(GameRule.ActionType actionType)
-    {
-        GameObject ruleItem = Instantiate(RulePrefab, RulesList.transform);
-        GameRule rule = ruleItem.GetComponent<GameRule>();
-        // Debug.Log("GameController.AddNewRule(): New rule successful? " + rule != null ? "True" : "False");
-        rule.Init(actionType);
-        rules.Add(rule);
-
-        ruleItem.GetComponentInChildren<Button>().onClick.AddListener(() => RemoveRule(ruleItem, rule));
-
-        actionTypeToActionItem[actionType].SetActive(false);
-        
-        // check if all actions are now in use and show hint if so
-        if (actionTypeToActionItem.Values.All(item => !item.activeSelf))
-            NoActionsLeftHint.SetActive(true);
-    }
-
-    public void RemoveRule(GameObject ruleObject, GameRule rule)
-    {
-        rules.Remove(rule);
-        Destroy(ruleObject);
-
-        actionTypeToActionItem[rule.Action].SetActive(true);
-        NoActionsLeftHint.SetActive(false);
     }
 
     public void SetPlaybackSpeed(float newSpeed)
@@ -171,51 +137,6 @@ public class GameController : MonoBehaviour
         levelManager.OpenLevel(levelNumber);
     }
 
-    private void InitialiseActionList()
-    {
-        if (ActionsList == null)
-        {
-            UnityEngine.Debug.LogError("GameController.InitialiseActionList(): Action List not assigned.");
-            return;
-        }
-
-        // Ensure the new action menu is inactive by default
-        NewRuleSetup.SetActive(false);
-
-        // Clear the list
-        for (int i = ActionsList.transform.childCount - 1; i >= 0; i--)
-        {
-            Destroy(ActionsList.transform.GetChild(i).gameObject);
-        }
-
-        // Add an item for each action type
-        foreach (GameRule.ActionType action in Enum.GetValues(typeof(GameRule.ActionType)))
-        {
-            GameObject actionItem = Instantiate(ActionItemPrefab, ActionsList.transform);
-            actionItem.GetComponentInChildren<TextMeshProUGUI>().SetText(action.ToDescription());
-            actionItem.GetComponent<Button>().onClick.AddListener(() => {
-                AddNewRule(action);
-                NewRuleSetup.SetActive(false);
-            });
-            actionTypeToActionItem.Add(action, actionItem);
-        }
-    }
-
-    private void InitialiseRulesList()
-    {
-        // Clear the list
-        for (int i = RulesList.transform.childCount - 1; i >= 0; i--)
-        {
-            Destroy(RulesList.transform.GetChild(i).gameObject);
-        }
-
-        // Load cached rules
-        // TODO
-
-        // If no cached rules, add a default rules
-        // TODO
-    }
-
     private void OnPlayButtonClicked()
     {
         if (!playing)
@@ -231,7 +152,7 @@ public class GameController : MonoBehaviour
         playButton.SetPlaying(true);
 
         // Write parameters file
-        string paramsJson = JsonUtility.ToJson(new AIParameters(levelManager.CurrentLevelNumber, generationsToRun, rules), true);
+        string paramsJson = JsonUtility.ToJson(new AIParameters(levelManager.CurrentLevelNumber, generationsToRun, rulesManager.Rules), true);
         File.WriteAllText(parametersJsonPath, paramsJson);
 
         // Delete the AI output file to avoid playing back an old run
