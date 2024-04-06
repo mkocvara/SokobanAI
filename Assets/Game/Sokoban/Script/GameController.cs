@@ -5,21 +5,19 @@ using System.Linq;
 using System.IO;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Tilemaps;
 using UnityEngine.UI;
 using System.Collections;
-using static GameWorld;
+using System.Text;
 
 public class GameController : MonoBehaviour
 {
-    public bool PausePlayback { get 
-        {
-            bool paused = MainMenu.activeSelf || LevelPicker.activeSelf || playbackSpeed == 0;
-            playbackPlayingLabelTextMesh.text = paused ? "Paused." : "Playing...";
-            return paused; 
-        } 
-    }
+    [Header("Playback Settings")]
+    [Min(0)]
+    public float GenerationFinishedDelayMultiplier = 2.0f;
+    [Min(0)]
+    public float LevelSolvedDelay = 3.0f;
 
+    [Header("References")]
     // Playback UI references
     public GameObject PlayButtonObject;
     public GameObject PlaybackSpeedTextObject, PlaybackPlayingLabelTextObject, GenerationNumberTextObject;
@@ -31,44 +29,64 @@ public class GameController : MonoBehaviour
     private PlayButton playButton;
     private TextMeshProUGUI generationNumberTextMesh, playbackSpeedTextMesh, playbackPlayingLabelTextMesh;
 
-    private readonly string pythonExePath = Path.Combine(Application.streamingAssetsPath, "Python", "python.exe");
-    private readonly string pythonScriptPath = Path.Combine(Application.streamingAssetsPath, "AI", "script.py");
-    private readonly string aiOutFilePath = Path.Combine(Application.streamingAssetsPath, "AI", "ai-out.txt");
-    private readonly string parametersJsonPath = Path.Combine(Application.streamingAssetsPath, "AI", "parameters.json");
-    
-    private const string aiOutEndLine = "END";
+    public bool PausePlayback { get { return MainMenu.activeSelf || LevelPicker.activeSelf || playbackSpeed == 0; } }
+
+    private static readonly string pythonExePath = Path.Combine(Application.streamingAssetsPath, "Python", "python.exe");
+    private static readonly string pythonScriptPath = Path.Combine(Application.streamingAssetsPath, "AI", "main.py");
+    private static readonly string aiOutFilePath = Path.Combine(Application.streamingAssetsPath, "AI", "ai-out.txt");
+    private static readonly string parametersJsonPath = Path.Combine(Application.streamingAssetsPath, "AI", "parameters.json");
+
+    private static readonly string paramPathArg = $"--params-path=\"{parametersJsonPath}\"";
+    private static readonly string outPathArg = $"--out-path=\"{aiOutFilePath}\"";
+    private static readonly string levelsDirPathArg = $"--levels-path=\"{Level.LevelDirectory}\"";
+
+    private static readonly string aiOutEndLine = "END";
 
     private GameWorld gameWorld;
     private LevelManager levelManager;
     private RulesManager rulesManager;
 
-    private float CurrentMoveDelay { 
-        get 
-        { 
-            return playbackSpeedToMoveDelay.Keys.Contains(playbackSpeed) 
-                ? playbackSpeedToMoveDelay[playbackSpeed] 
-                : playbackSpeedToMoveDelay[playbackSpeedToMoveDelay.Count()]; 
-        } 
+    private float CurrentMoveDelay {
+        get
+        {
+            return playbackSpeedToMoveDelay.Keys.Contains(playbackSpeed)
+                ? playbackSpeedToMoveDelay[playbackSpeed]
+                : playbackSpeedToMoveDelay[playbackSpeedToMoveDelay.Count()];
+        }
     }
 
     private int playbackSpeed = 3;
     private readonly Dictionary<int, float> playbackSpeedToMoveDelay = new() {
-        { 1, 3.0f },
-        { 2, 1.0f },
-        { 3, 0.5f },
-        { 4, 0.25f },
-        { 5, 0.1f }
+        { 1, 1.5f },
+        { 2, 0.5f },
+        { 3, 0.1f },
+        { 4, 0.05f },
+        { 5, 0.01f }
     };
 
-    private int generationsToRun = 100;
+    private int generationsToRun = 3000;
+    private int explorationThreshold = 80;
 
     private bool playing;
     private Process aiProcess = null;
+    private StringBuilder aiErrorOutput;
 
-    /* TODO 
-     * Integrate actual AI script   -
-     * solve level button           .
-     * level completion             -
+    private bool GenerationFinished { 
+        get 
+        { 
+            return generationFinished; 
+        } 
+        set 
+        { 
+            generationFinished = value; 
+            UpdatePlayingHint(); 
+        } 
+    }
+    private bool generationFinished = false;
+
+    /* TODO LIST
+     * reduce the packaged python to bare essentials
+     * solve level button           
      * Fix UI not scaling right
      * On quit: auto save ruleset, save level completion status
      */
@@ -120,6 +138,18 @@ public class GameController : MonoBehaviour
         }
     }
 
+    public void OnEditExplorationThreshold(string inputText)
+    {
+        try
+        {
+            explorationThreshold = int.Parse(inputText);
+        }
+        catch
+        {
+            explorationThreshold = 0;
+        }
+    }
+
     public void QuitToDesktop()
     {
         EndPlayback();
@@ -144,10 +174,11 @@ public class GameController : MonoBehaviour
 
         UnityEngine.Debug.Log("GameController.StartPlayback(): Starting playback...");        
         
+        UpdatePlayingHint();
         playButton.SetPlaying(true);
 
         // Write parameters file
-        string paramsJson = JsonUtility.ToJson(new AIParameters(levelManager.CurrentLevelNumber, generationsToRun, rulesManager.Rules), true);
+        string paramsJson = JsonUtility.ToJson(new AIParameters(levelManager.CurrentLevelNumber, generationsToRun, explorationThreshold, rulesManager.Rules), true);
         File.WriteAllText(parametersJsonPath, paramsJson);
 
         // Delete the AI output file to avoid playing back an old run
@@ -159,18 +190,23 @@ public class GameController : MonoBehaviour
         // Run the python script
         ProcessStartInfo start = new()
         {
-            FileName = "\"" + pythonExePath + "\"",
-            Arguments = "\"" + pythonScriptPath + "\" \"" + aiOutFilePath + "\"",
-            UseShellExecute = true,
-            RedirectStandardOutput = false,
+            FileName = pythonExePath.SurroundWithQuotes(),
+            Arguments = string.Join(" ", new string[] { pythonScriptPath.SurroundWithQuotes(), paramPathArg, outPathArg, levelsDirPathArg }),
+            UseShellExecute = false,
+            RedirectStandardError = true,
             CreateNoWindow = true,
             WindowStyle = ProcessWindowStyle.Hidden
         };
 
         UnityEngine.Debug.Log("GameController.StartPlayback(): filename = " + start.FileName + "; args = " + start.Arguments);
         UnityEngine.Debug.Log("GameController.StartPlayback(): Starting python process...");
-        aiProcess = Process.Start(start);
 
+        aiProcess = new() { StartInfo = start };
+        aiErrorOutput = new();
+        aiProcess.ErrorDataReceived += (sender, args) => aiErrorOutput.AppendLine(args.Data);
+        aiProcess.Start();
+        aiProcess.BeginErrorReadLine();
+        
         // Read the output file and play back
         StartCoroutine(PlaybackLoop());
         playing = true;
@@ -180,6 +216,13 @@ public class GameController : MonoBehaviour
     {
         if (!playing)
             return;
+
+        if (aiErrorOutput != null)
+        {
+            string errString = aiErrorOutput.ToString();
+            if (!string.IsNullOrWhiteSpace(errString))
+                UnityEngine.Debug.LogError("GameController.StartPlayback(): Error running AI script:\n" + errString);
+        }
 
         if (aiProcess != null)
         {
@@ -212,71 +255,106 @@ public class GameController : MonoBehaviour
     {
         // gameWorld.DebugPrintMapState();
 
-        IEnumerable<string> lines;
-        string playLine = "", nextLine;
+        float timeoutTimer = 0.0f;
+        const float fileOpenWaitTime = 0.5f;
+        const float fileOpenTimeout = 10.0f;
+        const float readLineWaitTime = 0.01f;
+        const float readLineTimeout = 10.0f;
 
-        int waitCounter = 0;
+
+        // Check if the AI output file has been created and wait for it to be if not
         while (!File.Exists(aiOutFilePath))
         {
-            yield return new WaitForSeconds(2);
-            waitCounter++;
-            if (waitCounter > 10)
+            yield return new WaitForSeconds(fileOpenWaitTime);
+            timeoutTimer += fileOpenWaitTime;
+            if (timeoutTimer >= fileOpenTimeout)
             {
                 UnityEngine.Debug.LogError("GameController.StartPlayback(): AI output file not found.");
+                EndPlayback();
                 yield break;
             }
         }
 
-        waitCounter = 0;
+        IEnumerable<string> lines;
+        int currentGeneration = 0, previousGeneration = 0;
+        string nextLine;
 
-        do
+        timeoutTimer = 0.0f;
+
+        while (true) // Will break when the terminating line is reached
         {
-            lines = File.ReadLines(aiOutFilePath); 
+            // Read the next line from the AI output file
+            try 
+            { 
+                lines = File.ReadLines(aiOutFilePath);
+                nextLine = lines.Last();
+                currentGeneration = lines.Count();
 
-            if (lines == null || !lines.Any())
+                // If the terminating line is reached, read the line before it and break
+                if (nextLine == aiOutEndLine)
+                {
+                    nextLine = lines.SkipLast(1).Last();
+                    currentGeneration--;
+                    break;
+                }
+            }
+            catch (IOException e) // File is being written to by the AI script
             {
-                yield return new WaitForSeconds(1);
-                waitCounter++;
-                if (waitCounter > 10)
+                UnityEngine.Debug.LogWarning("GameController.StartPlayback(): " + e.Message);
+                nextLine = null;
+            }
+
+            // Check if successful at reading the file, otherwise wait and try again
+            if (string.IsNullOrEmpty(nextLine))
+            {
+                UnityEngine.Debug.Log("GameController.StartPlayback(): Waiting for AI output file access.");
+
+                yield return new WaitForSeconds(readLineWaitTime); // Wait for its turn to read the file
+
+                timeoutTimer += readLineWaitTime;
+                if (timeoutTimer >= readLineTimeout) // Waited too long
                 {
                     UnityEngine.Debug.LogError("GameController.StartPlayback(): AI output file is empty.");
+                    EndPlayback();
                     yield break;
                 }
                 continue;
             }
 
-            waitCounter = 0;
+            // Continue if successfully read the next line...
 
-            nextLine = lines.Last();
-
-            // break if the terminating line is reached 
-            if (nextLine == aiOutEndLine)
-                break;
-
-            if (nextLine == playLine)
+            // If the next line is the same as the current line, wait & try again
+            if (currentGeneration == previousGeneration)
             {
-                // sleep for a second and try again
-                yield return new WaitForSeconds(1);
+                yield return new WaitForSeconds(readLineWaitTime);
+
+                timeoutTimer += readLineWaitTime;
+                if (timeoutTimer >= readLineTimeout) // Waited too long
+                {
+                    UnityEngine.Debug.LogError("GameController.StartPlayback(): AI output file is empty.");
+                    EndPlayback();
+                    yield break;
+                }
                 continue;
             }
 
-            playLine = nextLine;
-            SetCurrentGeneration(lines.Count());
-            yield return StartCoroutine(PlayGeneration(playLine));
+            timeoutTimer = 0.0f;
+
+            previousGeneration = currentGeneration;
+            SetCurrentGeneration(currentGeneration);
+            yield return StartCoroutine(PlayGeneration(nextLine));
 
             gameWorld.ResetMapState();
         }
-        while (playLine != aiOutEndLine);
 
-        // get line before the terminating line and play it if it hasn't been played yet
-        nextLine = lines.SkipLast(1).Last();
-        if (nextLine != playLine)
+        // Play the final generation if it hasn't been played yet
+        if (currentGeneration != previousGeneration)
         {
-            SetCurrentGeneration(lines.Count() - 1); // -1 to accound for the terminating line
-            yield return StartCoroutine(PlayGeneration(playLine = nextLine));
-
-            // linger even longer on the final state of the final generation 
-            yield return new WaitForSeconds(CurrentMoveDelay * 3);
+            SetCurrentGeneration(currentGeneration); // -1 to accound for the terminating line
+            yield return StartCoroutine(PlayGeneration(nextLine));
+            yield return new WaitForSeconds(LevelSolvedDelay - (CurrentMoveDelay * GenerationFinishedDelayMultiplier)); 
+                // - (CurrentMoveDelay * GenerationFinishedDelayMultiplier) because it has already been waited for
+                // (Might have waited more or less if the playback speed has changed during the wait, but that's trivial)
         }
 
         UnityEngine.Debug.Log("GameController.StartPlayback(): Playback complete.");
@@ -301,21 +379,31 @@ public class GameController : MonoBehaviour
     {
         UnityEngine.Debug.Log("GameController.PlayGeneration(): Playing back line: " + playLine);
 
+        GenerationFinished = false;
+
         foreach (char actionChar  in playLine)
         {
+            while (PausePlayback)
+            {
+                UpdatePlayingHint();
+                yield return new WaitForSeconds(0.1f);
+            }
+
+            UpdatePlayingHint();
+
             switch (actionChar)
             {
                 case 'U':
-                    gameWorld.MakeMove(MoveDir.Up);
+                    gameWorld.MakeMove(GameWorld.MoveDir.Up);
                     break;
                 case 'D':
-                    gameWorld.MakeMove(MoveDir.Down);
+                    gameWorld.MakeMove(GameWorld.MoveDir.Down);
                     break;
                 case 'L':
-                    gameWorld.MakeMove(MoveDir.Left);
+                    gameWorld.MakeMove(GameWorld.MoveDir.Left);
                     break;
                 case 'R':
-                    gameWorld.MakeMove(MoveDir.Right);
+                    gameWorld.MakeMove(GameWorld.MoveDir.Right);
                     break;
                 default:
                     UnityEngine.Debug.LogWarning("GameController.PlayGeneration(): Invalid action character: \'" + actionChar + "\'");
@@ -324,22 +412,23 @@ public class GameController : MonoBehaviour
 
             // gameWorld.DebugPrintMapState();
 
-            // Halt playback if the user sets speed to 0
-            while (PausePlayback)
-                yield return new WaitForSeconds(0.5f);
-
-            // If the level is solved, handle that, linger on the solved state, then stop playing this generation.
+            // Likely better not to stop playback when the level is solved.
+            // Allow the AI to keep playing and the player to observe the whole generation
+            /*/ If the level is solved, handle that, linger on the solved state, then stop playing this generation.
             if (CheckLevelSolved())
             {
                 yield return new WaitForSeconds(CurrentMoveDelay * 3);
                 yield break;
             }
+            */
 
             yield return new WaitForSeconds(CurrentMoveDelay);
         }
 
+        GenerationFinished = true;
+
         // linger on the final state of the generation for a bit longer
-        yield return new WaitForSeconds(CurrentMoveDelay * 2);
+        yield return new WaitForSeconds(Math.Max(CurrentMoveDelay * (GenerationFinishedDelayMultiplier - 1), 0));
     }
 
     private bool CheckLevelSolved()
@@ -351,5 +440,13 @@ public class GameController : MonoBehaviour
         levelManager.SetCurrentLevelSolved(true);
 
         return true;
+    }
+
+    private void UpdatePlayingHint()
+    {
+        if (PausePlayback)
+            playbackPlayingLabelTextMesh.text = "Paused.";
+        else
+            playbackPlayingLabelTextMesh.text = GenerationFinished ? "Finished." : "Playing...";
     }
 }

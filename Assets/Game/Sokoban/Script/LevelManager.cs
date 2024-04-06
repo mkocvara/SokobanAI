@@ -75,7 +75,7 @@ public class LevelManager : MonoBehaviour
         // https://docs.unity3d.com/ScriptReference/Networking.UnityWebRequest.html
 
         int levelNum = 1;
-        while (File.Exists(Level.LevelDirectory + levelNum))
+        while (File.Exists(Path.Combine(Level.LevelDirectory, Level.GetFileNameFromLevelNumber(levelNum))))
         {
             CreateLevel(levelNum);
             levelNum++;

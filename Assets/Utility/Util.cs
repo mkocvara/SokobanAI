@@ -105,4 +105,9 @@ static class Util
 
         return sb.ToString();
     }
+
+    public static string SurroundWithQuotes(this string text)
+    {
+        return $"\"{text}\"";
+    }
 }

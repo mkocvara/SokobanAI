@@ -8,13 +8,16 @@ public class GameRule : MonoBehaviour
 {
     public enum ActionType
     {
-        // TODO dummies
-        [Description("Move closer to a box")]
-        MoveToBox,
-        [Description("Push a box")]
-        PushBox,
+        [Description("Move onto empty ground")]
+        MoveToEmptyGround,
         [Description("Move into a wall")]
-        MoveIntoWall
+        MoveIntoWall,
+        [Description("Push the box")]
+        PushBox,
+        [Description("Push the box onto the mark")]
+        BoxOnMark,
+        [Description("Push the box into a wall")]
+        PushBoxIntoWall
     }
 
     public GameObject RewardInputObject, ActionNameTextObject;

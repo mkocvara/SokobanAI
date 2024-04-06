@@ -79,5 +79,9 @@ parameters.json
 parameters.json.meta
 /[Aa]ssets/[Ss]treamingAssets/Rulesets/**
 
+__pycache__
+__pycache__/**
+__pycache__.meta
+
 # Exclude tag
 *nogit*
