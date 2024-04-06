@@ -46,12 +46,8 @@ public class Ruleset : MonoBehaviour
 
     void Start()
     {
-        textMesh = TextObject.GetComponent<TextMeshProUGUI>();
-
-        Debug.Log("Ruleset.Start(): Starting Ruleset: textMesh=" + (textMesh == null ? "null" : "not null"));
-
         // Hide until initialised
-        gameObject.SetActive(initialised);
+        if (!initialised) gameObject.SetActive(false);
     }
 
     public void Init(string name, SerializableGameRule[] rules, RulesManager rulesManager)
@@ -118,7 +114,7 @@ public class Ruleset : MonoBehaviour
 
     private void InitInner(string name, RulesManager rulesManager)
     {
-        textMesh = textMesh != null ? textMesh : TextObject.GetComponent<TextMeshProUGUI>();
+        textMesh = TextObject.GetComponent<TextMeshProUGUI>();
 
         RulesetName = name;
         textMesh.text = name;

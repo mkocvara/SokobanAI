@@ -222,6 +222,21 @@ public class GameWorld : MonoBehaviour
     }
 #endif
 
+    public bool IsLevelSolved()
+    {
+        for (int x = 0; x < mapState.MapSize.x; x++)
+        {
+            for (int y = 0; y < mapState.MapSize.y; y++)
+            {
+                GridObjectType gridObject = mapState.GetGridObject(x, y);
+                if (gridObject == GridObjectType.Box)
+                    return false;
+            }
+        }
+
+        return true;
+    }
+
     private void FitCameraToMap()
     {
         int biggerSide = Mathf.Max(mapState.MapSize.x, mapState.MapSize.y);

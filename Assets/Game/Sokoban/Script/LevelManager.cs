@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using TMPro;
@@ -7,19 +6,21 @@ using UnityEngine.UI;
 
 public class LevelManager : MonoBehaviour
 {
-    public List<Level> Levels { get; private set; } = new();
-    public int CurrentLevelNumber { get; private set; } = 1;
-    public Level CurrentLevel { get { return Levels[CurrentLevelNumber - 1]; } }
-
-    // References
-    public GameObject InstructionsTextObject, LevelPicker, LevelsGrid;
+    public GameObject InstructionsTextObject, LevelPicker, LevelsGrid, LevelSolvedHint;
     public GameObject LevelPrefab;
 
+    public int CurrentLevelNumber { get; private set; } = -1;
+
+    private GameController gameController;
     private GameWorld gameWorld;
     private TextMeshProUGUI instructionsTextMesh;
 
+    private List<Level> levels = new();
+    private Level CurrentLevel { get { return levels[CurrentLevelNumber - 1]; } }
+
     void Start()
     {
+        gameController = FindObjectOfType<GameController>();
         gameWorld = FindObjectOfType<GameWorld>();
         instructionsTextMesh = InstructionsTextObject.GetComponent<TextMeshProUGUI>();
 
@@ -38,15 +39,34 @@ public class LevelManager : MonoBehaviour
 
     public void OpenLevel(int level)
     {
-        if (level < 1 || level > Levels.Count)
+        if (CurrentLevelNumber == level)
+            return;
+
+        if (level < 1 || level > levels.Count)
         {
             Debug.LogWarning("GameController.OpenLevel(): Level " + level + " does not exist.");
             return;
         }
 
-        gameWorld.SetLevel(Levels[level - 1]);
+        gameController.EndPlayback();
+        gameWorld.SetLevel(levels[level - 1]);
+
         CurrentLevelNumber = level;
         UpdateInstructions();
+        LevelSolvedHint.SetActive(CurrentLevel.IsSolved);
+    }
+
+    public void OpenNextLevel()
+    {
+        if (CurrentLevelNumber < levels.Count)
+        {
+            OpenLevel(CurrentLevelNumber + 1);
+        }
+    }
+
+    public void SetCurrentLevelSolved(bool solved)
+    {
+        CurrentLevel.SetSolved(solved);
     }
 
     private void LoadAllLevels()
@@ -62,14 +82,12 @@ public class LevelManager : MonoBehaviour
         }
     }
 
-    public void CreateLevel(int levelNum)
+    private void CreateLevel(int levelNum)
     {
-        GameController gameController = FindObjectOfType<GameController>();
-
         GameObject levelItem = Instantiate(LevelPrefab, LevelsGrid.transform);
         Level level = levelItem.GetComponent<Level>();
-        level.Init(levelNum);
-        Levels.Add(level);
+        level.Init(levelNum, LevelSolvedHint);
+        levels.Add(level);
 
         levelItem.GetComponent<Button>().onClick.AddListener(() => {
             gameController.ChangeLevel(levelNum);

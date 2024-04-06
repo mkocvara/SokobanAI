@@ -66,9 +66,9 @@ public class GameController : MonoBehaviour
     private Process aiProcess = null;
 
     /* TODO 
-     * Integrate actual AI script
-     * solve level button
-     * level completion
+     * Integrate actual AI script   -
+     * solve level button           .
+     * level completion             -
      * Fix UI not scaling right
      * On quit: auto save ruleset, save level completion status
      */
@@ -137,16 +137,11 @@ public class GameController : MonoBehaviour
         levelManager.OpenLevel(levelNumber);
     }
 
-    private void OnPlayButtonClicked()
+    public void StartPlayback()
     {
-        if (!playing)
-            StartPlayback();
-        else
-            EndPlayback();
-    }
+        if (playing)
+            return;
 
-    private void StartPlayback()
-    {
         UnityEngine.Debug.Log("GameController.StartPlayback(): Starting playback...");        
         
         playButton.SetPlaying(true);
@@ -181,9 +176,41 @@ public class GameController : MonoBehaviour
         playing = true;
     }
 
+    public void EndPlayback()
+    {
+        if (!playing)
+            return;
+
+        if (aiProcess != null)
+        {
+            aiProcess.Refresh();
+            if (!aiProcess.HasExited)
+            {
+                aiProcess.Kill();
+                aiProcess.Close();
+            }
+
+            aiProcess = null;
+        }
+
+        StopAllCoroutines();
+        playing = false;
+        playButton.SetPlaying(false);
+
+        gameWorld.ResetMapState();
+    }
+
+    private void OnPlayButtonClicked()
+    {
+        if (!playing)
+            StartPlayback();
+        else
+            EndPlayback();
+    }
+
     private IEnumerator PlaybackLoop()
     {
-        gameWorld.DebugPrintMapState();
+        // gameWorld.DebugPrintMapState();
 
         IEnumerable<string> lines;
         string playLine = "", nextLine;
@@ -295,11 +322,18 @@ public class GameController : MonoBehaviour
                     break;
             }
 
-            gameWorld.DebugPrintMapState();
+            // gameWorld.DebugPrintMapState();
 
             // Halt playback if the user sets speed to 0
             while (PausePlayback)
                 yield return new WaitForSeconds(0.5f);
+
+            // If the level is solved, handle that, linger on the solved state, then stop playing this generation.
+            if (CheckLevelSolved())
+            {
+                yield return new WaitForSeconds(CurrentMoveDelay * 3);
+                yield break;
+            }
 
             yield return new WaitForSeconds(CurrentMoveDelay);
         }
@@ -307,24 +341,15 @@ public class GameController : MonoBehaviour
         // linger on the final state of the generation for a bit longer
         yield return new WaitForSeconds(CurrentMoveDelay * 2);
     }
-    
-    private void EndPlayback()
+
+    private bool CheckLevelSolved()
     {
-        if (aiProcess != null)
-        {
-            aiProcess.Refresh();
-            if (!aiProcess.HasExited)
-            {
-                aiProcess.Kill();
-                aiProcess.Close();
-            }
+        if (!gameWorld.IsLevelSolved())
+            return false;
 
-            aiProcess = null;
-        }
+        UnityEngine.Debug.Log("GameController.CheckLevelSolved(): Level " + levelManager.CurrentLevelNumber + " completed.");
+        levelManager.SetCurrentLevelSolved(true);
 
-        StopAllCoroutines();
-        playing = false;
-        playButton.SetPlaying(false);
-        gameWorld.ResetMapState();
+        return true;
     }
 }

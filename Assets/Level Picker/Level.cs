@@ -15,24 +15,27 @@ public class Level : MonoBehaviour
     public string MapName { get; private set; }
     public string MapString { get; private set; }
     public string Instructions { get; private set; }
-    public bool IsCompleted { get; private set; } = false;
+    public bool IsSolved { get; private set; } = false;
 
     private bool initialised = false;
 
     private Image buttonImage;
     private TextMeshProUGUI mapNumberTextMesh, mapNameTextMesh;
+    private GameObject levelSolvedHint;
 
     private void Start()
     {
-        buttonImage = GetComponent<Image>();
-
         // Hide until initialised
         if (!initialised) gameObject.SetActive(false);
     }
 
-    public void Init(int number)
+    public void Init(int number, GameObject levelSolvedHint, bool solved = false)
     {
         LevelNumber = number;
+        this.levelSolvedHint = levelSolvedHint;
+        buttonImage = GetComponent<Image>();
+        SetSolved(solved);
+        
         LoadMapFromFile();
 
         mapNumberTextMesh = MapNumberTextObject.GetComponent<TextMeshProUGUI>();
@@ -45,10 +48,11 @@ public class Level : MonoBehaviour
         if (!gameObject.activeSelf) gameObject.SetActive(true);
     }
 
-    public void SetCompleted(bool isCompleted)
+    public void SetSolved(bool solved)
     {
-        IsCompleted = isCompleted;
-        buttonImage.sprite = IsCompleted ? CompletedImage : NotCompletedImage;
+        IsSolved = solved;
+        buttonImage.sprite = IsSolved ? CompletedImage : NotCompletedImage;
+        levelSolvedHint.SetActive(IsSolved);
     }
 
     private void LoadMapFromFile()
