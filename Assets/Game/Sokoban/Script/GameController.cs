@@ -85,10 +85,9 @@ public class GameController : MonoBehaviour
     private bool generationFinished = false;
 
     /* TODO LIST
-     * solve level button           
-     * Fix UI not scaling right
+     * solve level button
      * On quit: auto save ruleset, save level completion status
-     * BUG: Loading rulesets doesn't update actions available to add!!
+     * BUG: Loading rulesets doesn't update actions available to add!!  -
      * reduce the packaged python to bare essentials
      */
 

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Xml.Serialization;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -40,7 +41,7 @@ public class RulesManager : MonoBehaviour
         rule.Init(actionType, reward);
         Rules.Add(rule);
 
-        ruleItem.GetComponentInChildren<Button>().onClick.AddListener(() => RemoveRule(ruleItem, rule));
+        ruleItem.GetComponentInChildren<Button>().onClick.AddListener(() => RemoveRule(rule));
 
         actionTypeToActionItem[actionType].SetActive(false);
 
@@ -49,8 +50,10 @@ public class RulesManager : MonoBehaviour
             NoActionsLeftHint.SetActive(true);
     }
     
-    public void RemoveRule(GameObject ruleObject, GameRule rule)
+    public void RemoveRule(GameRule rule)
     {
+        GameObject ruleObject = rule.gameObject;
+
         Rules.Remove(rule);
         Destroy(ruleObject);
 
@@ -58,16 +61,23 @@ public class RulesManager : MonoBehaviour
         NoActionsLeftHint.SetActive(false);
     }
 
+    public void RemoveRule(GameObject ruleObject)
+    {
+        RemoveRule(ruleObject.GetComponent<GameRule>());
+    }
+
     public void SaveRuleset(string name)
     {
         if (Rules.Count == 0)
         {
             Debug.LogWarning("GameController.SaveRules(): No rules to save.");
-            return;
+            // return;
 
             // TODO: this would deserve better handling, ideally not
             // even letting the player try to save when they have no rules.
             // But time is running out and this is very low priority.
+            // Let them do it for now, so that at least the behaviour is
+            // as a user would expect.
         }
 
         Ruleset ruleset = rulesets.Find(r => r.RulesetName == name);
@@ -86,12 +96,11 @@ public class RulesManager : MonoBehaviour
         // Auto save current rules (unless loading auto save)
         string autoSaveName = "AutoSaveRules";
         if (name != autoSaveName && Rules.Count != 0)
-            SaveRuleset(autoSaveName); 
+            SaveRuleset(autoSaveName);
 
         // Wipe current rules
-        foreach (GameRule rule in Rules)
-            Destroy(rule.gameObject);
-        Rules.Clear();
+        while (Rules.Any())
+            RemoveRule(Rules.First());
 
         // Load new rules
         Ruleset ruleset = rulesets.Find(r => r.RulesetName == name);
