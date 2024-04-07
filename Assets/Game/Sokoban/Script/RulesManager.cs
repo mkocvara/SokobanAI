@@ -20,17 +20,24 @@ public class RulesManager : MonoBehaviour
 
     private List<Ruleset> rulesets = new();
 
+    private const string autoSaveRulesetName = "Auto Save";
+
     void Start()
     {
         InitialiseActionList();
-        InitialiseRulesList();
         InitialiseRulesets();
+        InitialiseRulesList();
 
         SaveRulesetButton.GetComponent<Button>().onClick.AddListener(
             () => {
                 string name = SaveRulesetNameInput.GetComponent<TMP_InputField>().text;
                 SaveRuleset(name);
             });
+    }
+
+    private void OnApplicationQuit()
+    {
+        AutoSaveRuleset();
     }
 
     public void AddNewRule(GameRule.ActionType actionType, int reward = 0)
@@ -94,9 +101,8 @@ public class RulesManager : MonoBehaviour
     public void LoadRuleset(string name)
     {
         // Auto save current rules (unless loading auto save)
-        string autoSaveName = "AutoSaveRules";
-        if (name != autoSaveName && Rules.Count != 0)
-            SaveRuleset(autoSaveName);
+        if (name != autoSaveRulesetName && Rules.Count != 0)
+            AutoSaveRuleset();
 
         // Wipe current rules
         while (Rules.Any())
@@ -112,7 +118,10 @@ public class RulesManager : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("GameController.LoadRules(): Ruleset not found.");
+            if (name == autoSaveRulesetName)
+                Debug.Log("GameController.LoadRules(): No auto saved rules.");
+            else
+                Debug.LogWarning("GameController.LoadRules(): Ruleset not found.");
             return;
         }
     }
@@ -134,6 +143,11 @@ public class RulesManager : MonoBehaviour
         Destroy(ruleset.gameObject);
 
         NoRulesetsHint.SetActive(rulesets.Count == 0);
+    }
+
+    private void AutoSaveRuleset()
+    {
+        SaveRuleset(autoSaveRulesetName);
     }
 
     private void InitialiseActionList()
@@ -173,6 +187,9 @@ public class RulesManager : MonoBehaviour
         {
             Destroy(RulesList.transform.GetChild(i).gameObject);
         }
+
+        // Load auto saved rules
+        LoadRuleset(autoSaveRulesetName);
     }
 
     private void InitialiseRulesets()

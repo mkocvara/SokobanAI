@@ -86,8 +86,7 @@ public class GameController : MonoBehaviour
 
     /* TODO LIST
      * solve level button
-     * On quit: auto save ruleset, save level completion status
-     * BUG: Loading rulesets doesn't update actions available to add!!  -
+     * save level completion status
      * reduce the packaged python to bare essentials
      */
 
