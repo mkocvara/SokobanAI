@@ -1,5 +1,5 @@
 N
-Level 2
+Test Level 2
 M
 ##########
 #x...#..p#
@@ -11,3 +11,5 @@ M
 ##########
 I
 These are instructions loaded from a level file.
+
+Woo!

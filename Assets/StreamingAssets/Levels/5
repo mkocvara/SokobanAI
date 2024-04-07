@@ -1,5 +1,5 @@
 N
-Level 5
+Test Level 5
 M
 ##########
 #x.......#
@@ -11,3 +11,5 @@ M
        ###
 I
 These are instructions loaded from a level file.
+
+Kapow!
