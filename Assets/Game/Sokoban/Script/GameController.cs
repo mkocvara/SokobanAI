@@ -85,10 +85,11 @@ public class GameController : MonoBehaviour
     private bool generationFinished = false;
 
     /* TODO LIST
-     * reduce the packaged python to bare essentials
      * solve level button           
      * Fix UI not scaling right
      * On quit: auto save ruleset, save level completion status
+     * BUG: Loading rulesets doesn't update actions available to add!!
+     * reduce the packaged python to bare essentials
      */
 
     void Start()
@@ -421,6 +422,7 @@ public class GameController : MonoBehaviour
                 yield break;
             }
             */
+            CheckLevelSolved();
 
             yield return new WaitForSeconds(CurrentMoveDelay);
         }
