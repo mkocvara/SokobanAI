@@ -77,7 +77,8 @@ ai-out.txt
 ai-out.txt.meta
 parameters.json
 parameters.json.meta
-/[Aa]ssets/[Ss]treamingAssets/Rulesets/**
+/[Aa]ssets/[Ss]treamingAssets/SavedData.meta
+/[Aa]ssets/[Ss]treamingAssets/SavedData/**
 
 __pycache__
 __pycache__/**

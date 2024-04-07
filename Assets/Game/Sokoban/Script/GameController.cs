@@ -26,10 +26,13 @@ public class GameController : MonoBehaviour
     public GameObject MainMenu;
     public GameObject LevelPicker;
 
-    private PlayButton playButton;
-    private TextMeshProUGUI generationNumberTextMesh, playbackSpeedTextMesh, playbackPlayingLabelTextMesh;
-
     public bool PausePlayback { get { return MainMenu.activeSelf || LevelPicker.activeSelf || playbackSpeed == 0; } }
+
+    public static readonly string SaveDataDirectory = Path.Combine(Application.streamingAssetsPath, "SavedData");
+    public SavedData SavedData { get { return savedData ??= LoadSavedData(); } }
+
+    private const string savedDataFileName = "SavedData.json";
+    private readonly string savedDataPath = Path.Combine(SaveDataDirectory, savedDataFileName);
 
     private static readonly string pythonExePath = Path.Combine(Application.streamingAssetsPath, "Python", "python.exe");
     private static readonly string pythonScriptPath = Path.Combine(Application.streamingAssetsPath, "AI", "main.py");
@@ -41,6 +44,9 @@ public class GameController : MonoBehaviour
     private static readonly string levelsDirPathArg = $"--levels-path=\"{Level.LevelDirectory}\"";
 
     private static readonly string aiOutEndLine = "END";
+
+    private PlayButton playButton;
+    private TextMeshProUGUI generationNumberTextMesh, playbackSpeedTextMesh, playbackPlayingLabelTextMesh;
 
     private GameWorld gameWorld;
     private LevelManager levelManager;
@@ -84,9 +90,10 @@ public class GameController : MonoBehaviour
     }
     private bool generationFinished = false;
 
+    private SavedData savedData;
+
     /* TODO LIST
      * solve level button
-     * save level completion status
      * reduce the packaged python to bare essentials
      */
 
@@ -120,6 +127,25 @@ public class GameController : MonoBehaviour
         }
     }
 
+    private void OnApplicationQuit()
+    {
+        EndPlayback();
+        SaveDataToFile();
+    }
+
+    public void SaveDataToFile()
+    {
+        if (!Directory.Exists(SaveDataDirectory))
+        {
+            Directory.CreateDirectory(SaveDataDirectory);
+        }
+
+        SavedData savedData = new();
+        levelManager.SaveLevelData(ref savedData);
+        string json = JsonUtility.ToJson(savedData, true);
+        File.WriteAllText(savedDataPath, json);
+    }
+
     public void SetPlaybackSpeed(float newSpeed)
     {
         playbackSpeed = (int)newSpeed;
@@ -151,8 +177,6 @@ public class GameController : MonoBehaviour
 
     public void QuitToDesktop()
     {
-        EndPlayback();
-
 #if UNITY_EDITOR
         UnityEditor.EditorApplication.isPlaying = false;
 #endif
@@ -448,5 +472,14 @@ public class GameController : MonoBehaviour
             playbackPlayingLabelTextMesh.text = "Paused.";
         else
             playbackPlayingLabelTextMesh.text = GenerationFinished ? "Finished." : "Playing...";
+    }
+
+    private SavedData LoadSavedData()
+    {
+        if (!File.Exists(savedDataPath))
+            return new SavedData();
+
+        string json = File.ReadAllText(savedDataPath);
+        return JsonUtility.FromJson<SavedData>(json);
     }
 }

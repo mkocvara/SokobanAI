@@ -36,11 +36,9 @@ public class Ruleset : MonoBehaviour
 
     private TextMeshProUGUI textMesh;
 
-    private static readonly string saveDirectory = Path.Combine(Application.streamingAssetsPath, "Rulesets");
-    private string FileName { get { return Path.Combine(RulesetName.ToValidFileName('_', true) + ".json"); } }
+    private static readonly string saveDirectory = Path.Combine(GameController.SaveDataDirectory, "Rulesets");
+    private string FileName { get { return RulesetName.ToValidFileName('_', true) + ".json"; } }
     private string JsonPath { get { return Path.Combine(saveDirectory, FileName); } }
-
-    private UnityAction cachedDeleteButtonCallback;
 
     private bool initialised = false;
 
@@ -69,6 +67,11 @@ public class Ruleset : MonoBehaviour
 
     public void SaveToFile()
     {
+        if (!Directory.Exists(saveDirectory))
+        {
+            Directory.CreateDirectory(saveDirectory);
+        }
+
         SerializableRuleset serialisable = new(this);
         string json = JsonUtility.ToJson(serialisable, true);
         File.WriteAllText(JsonPath, json);
@@ -85,10 +88,7 @@ public class Ruleset : MonoBehaviour
         List<SerializableRuleset> rulesets = new();
 
         if (!Directory.Exists(saveDirectory))
-        {
-            Directory.CreateDirectory(saveDirectory);
             return rulesets;
-        }
 
         string[] files = Directory.GetFiles(saveDirectory);
         IEnumerable<string> jsonFiles = files.Where(f => f.TakeLast(5).ToArray().ArrayToString() == ".json");

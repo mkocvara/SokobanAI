@@ -34,6 +34,7 @@ public class LevelManager : MonoBehaviour
         LevelPicker.SetActive(false); 
 
         LoadAllLevels();
+        LoadSavedData(gameController.SavedData);
         OpenLevel(1);
     }
 
@@ -67,6 +68,39 @@ public class LevelManager : MonoBehaviour
     public void SetCurrentLevelSolved(bool solved)
     {
         CurrentLevel.SetSolved(solved);
+    }
+
+    /// <summary>
+    /// Populate level data in a SavedData object.
+    /// </summary>
+    /// <param name="savedData">SavedData object, which will have its level data set.</param>
+    public void SaveLevelData(ref SavedData savedData)
+    {
+        savedData ??= new SavedData();
+        savedData.LevelsSolved = new bool[levels.Count];
+        for (int i = 0; i < levels.Count; i++)
+        {
+            savedData.LevelsSolved[i] = levels[i].IsSolved;
+        }
+    }
+
+    public void LoadSavedData(SavedData savedData)
+    {
+        if (savedData == null)
+        {
+            Debug.LogWarning("GameController.LoadSavedData(): No saved data.");
+            return;
+        }
+
+        for (int i = 0; i < levels.Count; i++)
+        {
+            levels[i].SetSolved(savedData.LevelsSolved[i]);
+        }
+    }
+
+    public void ResetSolvedLevels()
+    {
+        levels.ForEach(l => l.SetSolved(false));
     }
 
     private void LoadAllLevels()
