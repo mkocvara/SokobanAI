@@ -17,10 +17,17 @@ public class GameController : MonoBehaviour
     [Min(0)]
     public float LevelSolvedDelay = 3.0f;
 
+    [Header("Default Parameters")]
+    [Min(0)]
+    public int DefaultGenerationsToRun = 3000;
+    [Min(0)]
+    public int DefaultExplorationThreshold = 100;
+
     [Header("References")]
     // Playback UI references
     public GameObject PlayButtonObject;
     public GameObject PlaybackSpeedTextObject, PlaybackPlayingLabelTextObject, GenerationNumberTextObject;
+    public GameObject GenerationsInputObject, ExplorationThresholdInputObject;
 
     // Other references
     public GameObject MainMenu;
@@ -48,6 +55,10 @@ public class GameController : MonoBehaviour
     private PlayButton playButton;
     private TextMeshProUGUI generationNumberTextMesh, playbackSpeedTextMesh, playbackPlayingLabelTextMesh;
 
+    private TMP_InputField GenerationsInput { get { return generationsInput ??= GenerationsInputObject.GetComponent<TMP_InputField>(); } }
+    private TMP_InputField ExplorationThresholdInput { get { return explorationThresholdInput ??= ExplorationThresholdInputObject.GetComponent<TMP_InputField>(); } }
+    private TMP_InputField generationsInput, explorationThresholdInput;
+
     private GameWorld gameWorld;
     private LevelManager levelManager;
     private RulesManager rulesManager;
@@ -70,8 +81,8 @@ public class GameController : MonoBehaviour
         { 5, 0.01f }
     };
 
-    private int generationsToRun = 3000;
-    private int explorationThreshold = 80;
+    private int generationsToRun;
+    private int explorationThreshold;
 
     private bool playing;
     private Process aiProcess = null;
@@ -93,7 +104,7 @@ public class GameController : MonoBehaviour
     private SavedData savedData;
 
     /* TODO LIST
-     * Hide game elements based on level
+     * Fix Level Picker UI
      * reduce the packaged python to bare essentials
      */
 
@@ -109,8 +120,11 @@ public class GameController : MonoBehaviour
         rulesManager = FindObjectOfType<RulesManager>();
 
         PlayButtonObject.GetComponent<Button>().onClick.AddListener(OnPlayButtonClicked);
-        SetPlaybackSpeed(playbackSpeed);
+        // SetPlaybackSpeed(playbackSpeed);
         playbackSpeedTextMesh.text = playbackSpeed.ToString();
+        
+        SetNumGenerations(DefaultGenerationsToRun);
+        SetExplorationThreshold(DefaultExplorationThreshold);
     }
 
     private void Update()
@@ -173,6 +187,18 @@ public class GameController : MonoBehaviour
         {
             explorationThreshold = 0;
         }
+    }
+
+    public void SetNumGenerations(int numGenerations)
+    {
+        generationsToRun = numGenerations;
+        GenerationsInput.text = numGenerations.ToString();
+    }
+
+    public void SetExplorationThreshold(int threshold)
+    {
+        explorationThreshold = threshold;
+        ExplorationThresholdInput.text = threshold.ToString();
     }
 
     public void QuitToDesktop()

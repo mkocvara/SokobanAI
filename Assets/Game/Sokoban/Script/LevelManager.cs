@@ -14,6 +14,7 @@ public class LevelManager : MonoBehaviour
     private GameController gameController;
     private GameWorld gameWorld;
     private RulesManager rulesManager;
+    private ProgressionManager progressionManager;
 
     private TextMeshProUGUI instructionsTextMesh;
 
@@ -25,6 +26,8 @@ public class LevelManager : MonoBehaviour
         gameController = FindObjectOfType<GameController>();
         rulesManager = FindObjectOfType<RulesManager>();
         gameWorld = FindObjectOfType<GameWorld>();
+        progressionManager = FindObjectOfType<ProgressionManager>();
+
         instructionsTextMesh = InstructionsTextObject.GetComponent<TextMeshProUGUI>();
 
         // Clear dummy level buttons
@@ -53,11 +56,12 @@ public class LevelManager : MonoBehaviour
         }
 
         gameController.EndPlayback();
-        gameWorld.SetLevel(levels[level - 1]);
 
+        gameWorld.SetLevel(levels[level - 1]);
+        progressionManager.SetUpLevel(level);
         CurrentLevelNumber = level;
-        UpdateInstructions();
         LevelSolvedHint.SetActive(CurrentLevel.IsSolved);
+        UpdateInstructions();
     }
 
     public void OpenNextLevel()

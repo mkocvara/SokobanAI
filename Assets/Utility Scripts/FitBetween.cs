@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class ToolbarFit : MonoBehaviour
+public class FitBetween : MonoBehaviour
 {
     public GameObject Left, Right;
     public float padLeft = 0, padRight = 0;
