@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Xml.Serialization;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -21,6 +21,8 @@ public class RulesManager : MonoBehaviour
     private List<Ruleset> rulesets = new();
 
     private const string autoSaveRulesetName = "Auto Save";
+
+    private readonly string levelSolutionsDirectory = Path.Combine(Application.streamingAssetsPath, "Levels");
 
     void Start()
     {
@@ -56,7 +58,7 @@ public class RulesManager : MonoBehaviour
         if (actionTypeToActionItem.Values.All(item => !item.activeSelf))
             NoActionsLeftHint.SetActive(true);
     }
-    
+
     public void RemoveRule(GameRule rule)
     {
         GameObject ruleObject = rule.gameObject;
@@ -100,21 +102,10 @@ public class RulesManager : MonoBehaviour
 
     public void LoadRuleset(string name)
     {
-        // Auto save current rules (unless loading auto save)
-        if (name != autoSaveRulesetName && Rules.Count != 0)
-            AutoSaveRuleset();
-
-        // Wipe current rules
-        while (Rules.Any())
-            RemoveRule(Rules.First());
-
-        // Load new rules
         Ruleset ruleset = rulesets.Find(r => r.RulesetName == name);
         if (ruleset != null)
         {
-            SerializableGameRule[] rules = ruleset.SerializableRules;
-            foreach (SerializableGameRule rule in rules)
-                AddNewRule(rule.Action, rule.Reward);
+            LoadRulesetInner(ruleset.SerializableRules);
         }
         else
         {
@@ -131,7 +122,7 @@ public class RulesManager : MonoBehaviour
         //Debug.Log("GameController.RemoveRuleset(): Removing ruleset " + name);
 
         Ruleset ruleset = rulesets.Find(r => r.RulesetName == name);
-        
+
         if (ruleset == null)
         {
             Debug.LogWarning("GameController.RemoveRuleset(): Ruleset not found.");
@@ -143,6 +134,34 @@ public class RulesManager : MonoBehaviour
         Destroy(ruleset.gameObject);
 
         NoRulesetsHint.SetActive(rulesets.Count == 0);
+    }
+
+    public void LoadLevelSolution(int levelNum)
+    {
+        string path = Path.Combine(levelSolutionsDirectory, levelNum + ".solution");
+        Ruleset.SerializableRuleset? ruleset = Ruleset.LoadRulesetFromPath(path);
+        if (ruleset == null)
+        {
+            Debug.LogWarning("GameController.SolveLevel(): No solution found for level " + levelNum);
+            return;
+        }
+
+        LoadRulesetInner(ruleset.Value.Rules);
+    }
+
+    private void LoadRulesetInner(SerializableGameRule[] rules)
+    {
+        // Auto save current rules (unless loading auto save)
+        if (name != autoSaveRulesetName && Rules.Count != 0)
+            AutoSaveRuleset();
+
+        // Wipe current rules
+        while (Rules.Any())
+            RemoveRule(Rules.First());
+
+        // Load new rules
+        foreach (SerializableGameRule rule in rules)
+            AddNewRule(rule.Action, rule.Reward);
     }
 
     private void AutoSaveRuleset()

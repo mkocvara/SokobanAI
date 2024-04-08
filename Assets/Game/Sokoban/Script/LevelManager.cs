@@ -13,6 +13,8 @@ public class LevelManager : MonoBehaviour
 
     private GameController gameController;
     private GameWorld gameWorld;
+    private RulesManager rulesManager;
+
     private TextMeshProUGUI instructionsTextMesh;
 
     private List<Level> levels = new();
@@ -21,6 +23,7 @@ public class LevelManager : MonoBehaviour
     void Start()
     {
         gameController = FindObjectOfType<GameController>();
+        rulesManager = FindObjectOfType<RulesManager>();
         gameWorld = FindObjectOfType<GameWorld>();
         instructionsTextMesh = InstructionsTextObject.GetComponent<TextMeshProUGUI>();
 
@@ -68,6 +71,11 @@ public class LevelManager : MonoBehaviour
     public void SetCurrentLevelSolved(bool solved)
     {
         CurrentLevel.SetSolved(solved);
+    }
+
+    public void LoadSolutionForCurrentLevel()
+    {
+        rulesManager.LoadLevelSolution(CurrentLevelNumber);
     }
 
     /// <summary>

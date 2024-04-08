@@ -94,22 +94,33 @@ public class Ruleset : MonoBehaviour
         IEnumerable<string> jsonFiles = files.Where(f => f.TakeLast(5).ToArray().ArrayToString() == ".json");
         foreach (string file in jsonFiles)
         {
-             string json = File.ReadAllText(file);
-            
-            SerializableRuleset ruleset;
-            try 
-            { 
-                ruleset = JsonUtility.FromJson<SerializableRuleset>(json);
-                rulesets.Add(ruleset);
-            }
-            catch(Exception e)
-            {
-                Debug.LogWarning("Ruleset.LoadAllSavedRulesets(): Failed to load ruleset from \"" + file + "\"; Exception: " + e.Message);
+            SerializableRuleset? ruleset = LoadRulesetFromPath(file);
+
+            if (ruleset == null)
                 continue;
-            }
+
+            rulesets.Add(ruleset.Value);
         }
 
         return rulesets;
+    }
+
+    public static SerializableRuleset? LoadRulesetFromPath(string path)
+    {
+        if (!File.Exists(path))
+            return null;
+
+        string json = File.ReadAllText(path);
+
+        try
+        {
+            return JsonUtility.FromJson<SerializableRuleset>(json);
+        }
+        catch (Exception e)
+        {
+            Debug.LogWarning("Ruleset.LoadAllSavedRulesets(): Failed to load ruleset from \"" + path + "\"; Exception: " + e.Message);
+            return null;
+        }
     }
 
     private void InitInner(string name, RulesManager rulesManager)

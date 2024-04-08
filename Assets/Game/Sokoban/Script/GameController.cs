@@ -93,7 +93,7 @@ public class GameController : MonoBehaviour
     private SavedData savedData;
 
     /* TODO LIST
-     * solve level button
+     * Hide game elements based on level
      * reduce the packaged python to bare essentials
      */
 
