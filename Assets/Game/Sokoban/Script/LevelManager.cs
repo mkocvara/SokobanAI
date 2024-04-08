@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 public class LevelManager : MonoBehaviour
 {
-    public GameObject InstructionsTextObject, LevelPicker, LevelsGrid, LevelSolvedHint;
+    public GameObject InstructionsTextObject, LevelPicker, LevelLayout, LevelSolvedHint;
     public GameObject LevelPrefab;
 
     public int CurrentLevelNumber { get; private set; } = -1;
@@ -31,9 +31,9 @@ public class LevelManager : MonoBehaviour
         instructionsTextMesh = InstructionsTextObject.GetComponent<TextMeshProUGUI>();
 
         // Clear dummy level buttons
-        for (int i = LevelsGrid.transform.childCount - 1; i >= 0; i--)
+        for (int i = LevelLayout.transform.childCount - 1; i >= 0; i--)
         {
-            Destroy(LevelsGrid.transform.GetChild(i).gameObject);
+            Destroy(LevelLayout.transform.GetChild(i).gameObject);
         }
 
         // ensure level picker starts hidden
@@ -130,7 +130,7 @@ public class LevelManager : MonoBehaviour
 
     private void CreateLevel(int levelNum)
     {
-        GameObject levelItem = Instantiate(LevelPrefab, LevelsGrid.transform);
+        GameObject levelItem = Instantiate(LevelPrefab, LevelLayout.transform);
         Level level = levelItem.GetComponent<Level>();
         level.Init(levelNum, LevelSolvedHint);
         levels.Add(level);

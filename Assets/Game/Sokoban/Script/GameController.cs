@@ -104,7 +104,6 @@ public class GameController : MonoBehaviour
     private SavedData savedData;
 
     /* TODO LIST
-     * Fix Level Picker UI
      * reduce the packaged python to bare essentials
      */
 
@@ -120,7 +119,6 @@ public class GameController : MonoBehaviour
         rulesManager = FindObjectOfType<RulesManager>();
 
         PlayButtonObject.GetComponent<Button>().onClick.AddListener(OnPlayButtonClicked);
-        // SetPlaybackSpeed(playbackSpeed);
         playbackSpeedTextMesh.text = playbackSpeed.ToString();
         
         SetNumGenerations(DefaultGenerationsToRun);

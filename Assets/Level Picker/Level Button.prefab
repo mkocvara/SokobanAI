@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 5149005774405206273}
   - component: {fileID: 6367902551572568809}
   - component: {fileID: 2087717246870901116}
+  - component: {fileID: 8136584270032425269}
   m_Layer: 5
   m_Name: Level Button
   m_TagString: Untagged
@@ -150,6 +151,20 @@ MonoBehaviour:
   NotCompletedImage: {fileID: 21300000, guid: c21b12ac827039c4091ddf3fc39a7fb3, type: 3}
   MapNumberTextObject: {fileID: 8004325821263772975}
   MapNameTextObject: {fileID: 5672724625598964120}
+--- !u!114 &8136584270032425269
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 961174541543816789}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 86710e43de46f6f4bac7c8e50813a599, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_AspectMode: 1
+  m_AspectRatio: 1
 --- !u!1 &3339011728128655931
 GameObject:
   m_ObjectHideFlags: 0
