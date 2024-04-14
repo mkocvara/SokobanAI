@@ -81,8 +81,7 @@ public class GameController : MonoBehaviour
         { 5, 0.01f }
     };
 
-    private int generationsToRun;
-    private int explorationThreshold;
+    private int generationsToRun = -1, explorationThreshold = -1, cachedGenerationsToRun = -1;
 
     private bool playing;
     private Process aiProcess = null;
@@ -223,6 +222,8 @@ public class GameController : MonoBehaviour
 
         UnityEngine.Debug.Log("GameController.StartPlayback(): Starting playback...");        
         
+        cachedGenerationsToRun = generationsToRun;
+
         UpdatePlayingHint();
         playButton.SetPlaying(true);
 
@@ -430,8 +431,10 @@ public class GameController : MonoBehaviour
 
         GenerationFinished = false;
 
-        foreach (char actionChar  in playLine)
+        for (int i = 0; i < playLine.Count(); i++)
         {
+            char actionChar = playLine[i];
+
             while (PausePlayback)
             {
                 UpdatePlayingHint();
@@ -461,21 +464,13 @@ public class GameController : MonoBehaviour
 
             // gameWorld.DebugPrintMapState();
 
-            // Likely better not to stop playback when the level is solved.
-            // Allow the AI to keep playing and the player to observe the whole generation
-            /*/ If the level is solved, handle that, linger on the solved state, then stop playing this generation.
-            if (CheckLevelSolved())
-            {
-                yield return new WaitForSeconds(CurrentMoveDelay * 3);
-                yield break;
-            }
-            */
             CheckLevelSolved();
+
+            if (i == playLine.Count() - 1)
+                GenerationFinished = true;
 
             yield return new WaitForSeconds(CurrentMoveDelay);
         }
-
-        GenerationFinished = true;
 
         // linger on the final state of the generation for a bit longer
         yield return new WaitForSeconds(Math.Max(CurrentMoveDelay * (GenerationFinishedDelayMultiplier - 1), 0));
