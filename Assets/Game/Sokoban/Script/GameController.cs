@@ -402,6 +402,7 @@ public class GameController : MonoBehaviour
         {
             SetCurrentGeneration(currentGeneration); // -1 to accound for the terminating line
             yield return StartCoroutine(PlayGeneration(nextLine));
+            CheckLevelSolved(); // Only check if the level is solved when the trained model's game is played
             yield return new WaitForSeconds(LevelSolvedDelay - (CurrentMoveDelay * GenerationFinishedDelayMultiplier)); 
                 // - (CurrentMoveDelay * GenerationFinishedDelayMultiplier) because it has already been waited for
                 // (Might have waited more or less if the playback speed has changed during the wait, but that's trivial)
@@ -468,8 +469,6 @@ public class GameController : MonoBehaviour
             }
 
             // gameWorld.DebugPrintMapState();
-
-            CheckLevelSolved();
 
             if (i == playLine.Count() - 1)
                 GenerationFinished = true;
