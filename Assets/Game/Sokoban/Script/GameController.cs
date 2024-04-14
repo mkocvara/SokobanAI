@@ -121,7 +121,7 @@ public class GameController : MonoBehaviour
         playbackSpeedTextMesh.text = playbackSpeed.ToString();
         
         if (generationsToRun <= 0)
-        SetNumGenerations(DefaultGenerationsToRun);
+            SetNumGenerations(DefaultGenerationsToRun);
         if (explorationThreshold <= 0)
         SetExplorationThreshold(DefaultExplorationThreshold);
     }
@@ -220,8 +220,8 @@ public class GameController : MonoBehaviour
         if (playing)
             return;
 
-        UnityEngine.Debug.Log("GameController.StartPlayback(): Starting playback...");        
-        
+        UnityEngine.Debug.Log("GameController.StartPlayback(): Starting playback...");
+
         cachedGenerationsToRun = generationsToRun;
 
         UpdatePlayingHint();
@@ -419,6 +419,11 @@ public class GameController : MonoBehaviour
         if (genNum == 0)
         {
             generationNumberTextMesh.text = "-";
+            return;
+        }
+        else if (genNum == cachedGenerationsToRun + 1)
+        {
+            generationNumberTextMesh.text = "Trained";
             return;
         }
 

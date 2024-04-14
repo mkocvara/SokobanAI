@@ -1,15 +1,17 @@
 N
-Test Level 2
+Negative Rewards 
 M
 ##########
-#x...#..p#
+#....#..p#
 #....#...#
 #....#...#
 #...b....#
 #....#...#
-#....#...#
+#x...#...#
 ##########
 I
-These are instructions loaded from a level file.
+To avoid unwanted actions like hitting a wall, we can penalise them by assigning negative rewards.
 
-Woo!
+Try adding a rule giving negative rewards when hitting walls, and another rule giving a positive reward for putting the box on the target. [TARGET AGAIN? MEANT TO BE BOX PUSHING INSTEAD?]
+
+[HAVING TESTED IT, FOLLOWING INSTRUCTIONS MAKES THIS LEVEL ALREADY EFFECTIVELY IMPOSSIBLE WITHOUT A LOT OF LUCK - I ADVISE RESTRUCTURING THE MAP, MAKING IT SMALLER]

@@ -1,14 +1,19 @@
 N
-Test Level 3
+Training and Generations
 M
-#######
-#..x..#
-#..#..#
-#..b..#
-#.....#
-#..p..#
-#######
+##########
+#........#
+#...b....#
+#....#...#
+#....#...#
+#....#p..#
+#x.......#
+##########
 I
-These are instructions loaded from a level file.
+Machine Learning models are defined by their ability to learn. This separates them from traditional programming where programs only follow instructions coded by the developers. In this game, the model trains by playing the game multiple times, starting by making random moves, then learning from its actions through the rewards given to it until it understands how to win the game. [I REWORDED THIS SLIGHTLY, ADDED A NOTE ABOUT MAKING RANDOM MOVES IN THE BEGINNING, AS PER FEEDBACK IN LEVEL 4]
 
-Wa-hey!
+Each game during training is called GENERATION. 
+
+Try changing the number of generations (blue bar at the top) until the robot wins by pushing the box on the target. 
+
+[TESTING THIS ONE, I KEPT THINKING "WELL I JUST NEED THE ROBOT TO ACCIDENTALLY HIT THE BOX ON THE MARK" BUT REALISED THAT OUR TARGET AUDIENCE WILL NOT KNOW THIS. ALSO, IT'S SO FAR AWAY THAT WITH ONLY THE RULES FROM PREVIOUS LEVELS IT WILL HARDLY HAPPEN. I THINK THIS LEVEL WILL BE DIFFICULT TO DIGEST. IT'S BETTER IF I ALSO HAVE THE 'PUSH BOX' RULE IN (AS PER ADVICE IN PREVIOUS LEVEL), BUT IT'S SO MUCH BETTER, THAT I DON'T EVEN NEED TO ADJUST GENERATIONS. I COULD CHANGE THE DEFAULT TO LESS THAN 1000, BUT THAT SEEMS UNREASONABLE? MAYBE THAT'S THE SOLUTION THOUGH.]

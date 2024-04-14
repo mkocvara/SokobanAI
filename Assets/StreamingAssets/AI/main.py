@@ -60,20 +60,19 @@ def write_actions(actions, episode):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Q-Learning for Sokoban")
 
-    default_parameters_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '/parameters.json')
+    default_parameters_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'parameters.json')
     parser.add_argument("--params-path", help="Path to the parameters file", default=default_parameters_path)
 
-    default_outfile_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '/ai-out.txt')
+    default_outfile_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'ai-out.txt')
     parser.add_argument("--out-path", help="Path to the output file", default=default_outfile_path)
     
-    default_levels_path = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), '/Levels/')
+    default_levels_path = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'Levels/')
     parser.add_argument("--levels-path", help="Path to the levels directory", default=default_levels_path)
 
     args = parser.parse_args()
     outfile_path = args.out_path
     parameters_path = args.params_path
     levels_path = args.levels_path
-
 
     # Loads parameters
     params = extract_json(parameters_path)
@@ -84,8 +83,12 @@ if __name__ == "__main__":
     # 2 -> Reward for moving the box
     # 3 -> Reward for winning the game
     # 4 -> Reward for moving the box into a wall
+    # 5 -> Reward for moving closer to the box
+    # 6 -> Reward for moving away from the box
+    # 7 -> Reward for moving the box closer to the target
+    # 8 -> Reward for moving the box away from the target
 
-    rules = np.zeros((5))
+    rules = np.zeros((9))
     for rule in rules_json:
         rules[rule['Action']] = rule['Reward']
 
@@ -97,7 +100,11 @@ if __name__ == "__main__":
                                  wall_reward=rules[1],
                                  cannot_move_box_reward=rules[4],
                                  moved_box_reward=rules[2],
-                                 end_of_game_reward=rules[3])
+                                 end_of_game_reward=rules[3],
+                                 closer_to_box_reward=rules[5],
+                                 away_from_box_reward=rules[6],
+                                 closer_to_target_reward=rules[7],
+                                 away_from_target_reward=rules[8])
     game.max_steps = 25
 
     # Create model (needs board width, board height, learning rate)
@@ -108,7 +115,7 @@ if __name__ == "__main__":
     episodes = params['NumGenerations']
 
     # Model training
-    for episode in range(episodes-1):
+    for episode in range(episodes):
         actions = []
         game.reset()
         state_id = map_to_id(game)

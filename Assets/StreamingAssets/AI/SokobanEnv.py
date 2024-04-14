@@ -1,9 +1,9 @@
+import os
 import numpy as np
 import gym
 from gym import spaces
 import sys
 import time
-import os
 # from IPython import display
 
 
@@ -16,7 +16,11 @@ class SokobanEnv(gym.Env):
                  wall_reward = -3,
                  cannot_move_box_reward=-1,
                  moved_box_reward=1,
-                 end_of_game_reward=10):
+                 end_of_game_reward=10,
+                 closer_to_box_reward=0,
+                 away_from_box_reward=0,
+                 closer_to_target_reward=0,
+                 away_from_target_reward=0):
         
         super(SokobanEnv, self).__init__()
         
@@ -39,7 +43,10 @@ class SokobanEnv(gym.Env):
         self.REWARD_CANNOT_MOVE_BOX = cannot_move_box_reward
         self.REWARD_MOVED_BOX = moved_box_reward
         self.REWARD_END_OF_GAME = end_of_game_reward
-
+        self.REWARD_CLOSER_TO_BOX = closer_to_box_reward
+        self.REWARD_AWAY_FROM_BOX = away_from_box_reward
+        self.REWARD_CLOSER_TO_TARGET = closer_to_target_reward
+        self.REWARD_AWAY_FROM_TARGET = away_from_target_reward
         
 
     def map_to_str(self, map):
@@ -76,12 +83,17 @@ class SokobanEnv(gym.Env):
             return
         if self.load_map_txt(os.path.join(self.levels_dir, str(level))):
             self.level = level
+            self.target_position = self.find_targets()[:, 0]
+
 
     def find_player_position(self):
         return np.array(np.where(self.map == 'p'))[:, 0]
     
     def find_box_positions(self):
         return np.array(np.where(np.logical_or(self.map == 'b', self.map == '!')))
+
+    def find_targets(self):
+        return np.array(np.where(np.logical_or(self.map == 'x', self.map == '!')))
     
     def number_achieved_targets(self):
         return len(np.where(self.map == '!')[0])
@@ -90,7 +102,9 @@ class SokobanEnv(gym.Env):
         done = False
         self.steps += 1
         reward = 0
-        new_player_position = self.player_position.copy()
+        old_player_position = self.player_position.copy()
+        old_box_position = self.find_box_positions()[:, 0]
+        new_player_position = old_player_position.copy()
 
         if action == 0:  # Move up
             new_player_position -= [1, 0]
@@ -130,6 +144,27 @@ class SokobanEnv(gym.Env):
         # overwritten by the passage of the robot
         self.fix_targets()
 
+        new_player_position = self.player_position.copy()
+        new_box_position = self.find_box_positions()[:, 0]
+
+        # Distance-based rewards
+        prev_player_dist = self.distance(old_box_position, old_player_position)
+        new_player_dist = self.distance(new_box_position, new_player_position)
+        prev_box_dist = self.distance(self.target_position, old_box_position)
+        new_box_dist = self.distance(self.target_position, new_box_position)
+
+        # Player moves away from box
+        if prev_player_dist < new_player_dist:
+            reward += self.REWARD_AWAY_FROM_BOX
+        elif prev_player_dist > new_player_dist:
+            reward += self.REWARD_CLOSER_TO_BOX
+        
+        # Box moves away from target
+        if prev_box_dist < new_box_dist:
+            reward += self.REWARD_AWAY_FROM_TARGET
+        elif prev_box_dist > new_box_dist:
+            reward += self.REWARD_CLOSER_TO_TARGET
+
         done = done or self.steps >= self.max_steps  # Game is done if the player reaches the target or maximum steps reached
 
         if self.use_memory:
@@ -141,6 +176,9 @@ class SokobanEnv(gym.Env):
         tile = self.map[self.target_position[0], self.target_position[1]]
         if tile == '.':
             self.map[self.target_position[0], self.target_position[1]] = 'x'
+    
+    def distance(self, x, y):
+        return sum([abs(x[i] - y[i]) for i in range(len(x))])
     
     def up(self):
         self.step(0)
@@ -155,11 +193,12 @@ class SokobanEnv(gym.Env):
         self.step(3)
 
     def reset(self):
-        #self.load_map_txt(os.path.join(self.levels_dir, str(self.level)))
+        # self.load_map_txt(os.path.join(self.levels_dir, str(self.level)))
         self.map = self.map_basestate.copy()
         self.player_position = self.find_player_position()
         self.steps = 0
         self.memory = [self.map.copy()]
+        self.target_position = self.find_targets()[:, 0]
         return self.map_to_float(self.map)
 
     # def render(self, mode='human'):
@@ -195,21 +234,21 @@ class SokobanEnv(gym.Env):
 
     def load_map_txt(self, filepath):
         try:
-            print(f'Loading level from file: {filepath}')
+            # print(f'Loading level from file: {filepath}')
             with open(filepath, "r") as f:
                 map_str = f.read()
                 _map = map_str.split('\n')
                 map_start = _map.index('M')
                 instr_start = _map.index('I')
                 _map = _map[map_start+1:instr_start]
-                
                 _map = [list(row.replace(' ', '.')) for row in _map]
                 width = len(max(_map, key = len))
+
                 _map = [row + ['.'] * (width-len(row)) if len(row) < width else row for row in _map]
 
                 self.map = np.array(_map)
                 self.map_basestate = self.map.copy()
-                
+
             success = True
         except FileNotFoundError:
             print(f"Cannot find level with filepath:\t{filepath}:")

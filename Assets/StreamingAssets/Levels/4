@@ -1,14 +1,21 @@
 N
-Test Level 4
+Agent and Environment
 M
-#######
-#..x..#
-#..#..#
-#..b..#
-#.....#
-#..p..#
-#######
+##########
+#........#
+#.....#..#
+#.....#.p#
+#..#.b#..#
+#..#.....#
+#x.......#
+##########
 I
-These are instructions loaded from a level file.
+The robot is called the 'agent', and the game is the 'environment'. 
 
-Howay!
+The agent learns to navigate the environment by taking actions in a given situation and receiving rewards. The agent’s goal is to take actions that will produce the best possible rewards.
+
+Try adding rules and changing the number of generations to help the robot win the level. 
+
+[THIS LEVEL IS REALLY DIFFICULT. EVEN KNOWING HOW THE AI WORKS I HAD A HARD TIME COMPLETING IT. EXPLAINING A BIT MORE ABOUT HOW THE AI LEARNS (SEE LEVEL 3 FEEDBACK) IS A START AND HOPEFULLY FIXING THE DISTANCE CALCULATIONS WILL HELP, BUT THERE'S A CHANCE THE LEVEL'S MAP MIGHT NEED REWORKING.
+
+ANOTHER THING IS IT'S ALMOST IMPOSSIBLE WITHOUT RAISING THE EXPLORATION THRESHOLD.]

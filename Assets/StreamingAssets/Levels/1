@@ -1,15 +1,17 @@
 N
-Tutorial Level
+Rules and Rewards
 M
-########
-#x.....#
-#......#
-#..b...#
-#......#
-#...p..#
-#......#
-########
+##########
+#x.......#
+#........#
+#..b.....#
+#........#
+#...p.####
+###...#
+  #####
 I
-These are instructions loaded from a level file.
+[MISSING INTRODUCTION - what's sokoban? what is AI? what is the player doing?]
 
-Yay!
+To help the robot understand what we want from it, we give it rewards for good actions. This feedback is the most important component of the learning process. [RULES NOT SUFFICIENTLY EXPLAINED]
+
+Try creating a positive reward for putting the box on the target and press the play button to start training.  [JUST TARGET? IT WORKS BUT FOLLOWING LEVELS ARE MADE MORE DIFFICULT]

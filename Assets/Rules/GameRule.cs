@@ -17,7 +17,15 @@ public class GameRule : MonoBehaviour
         [Description("Push the box onto the mark")]
         BoxOnMark,
         [Description("Push the box into a wall")]
-        PushBoxIntoWall
+        PushBoxIntoWall,
+        [Description("Robot moves closer to the box")]
+        PlayerMoveCloserToBox,
+        [Description("Robot moves farther from the box")]
+        PlayerMoveFartherFromBox,
+        [Description("Push the box closer to the mark")]
+        BoxPushedCloserToMark,
+        [Description("Push the box farther from the mark")]
+        BoxPushedFartherFromMark,
     }
 
     public GameObject RewardInputObject, ActionNameTextObject;
