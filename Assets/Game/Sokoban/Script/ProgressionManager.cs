@@ -1,24 +1,42 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class ProgressionManager : MonoBehaviour
 {
-    [Header("Level 1")]
-    public GameObject[] GameObjectsToHide1;
+    [Serializable]
+    public struct LevelElements
+    {
+        public int LevelNumber;
+        public GameObject[] GameObjectsToHide;
+        public Default[] DefaultValues;
 
-    [Header("Level 2")]
-    public GameObject[] GameObjectsToHide2;
+        public GameObject this[int index]
+        {
+            get
+            {
+                return GameObjectsToHide[index];
+            }
+            set
+            {
+                GameObjectsToHide[index] = value;
+            }
+        }
+    }
 
-    [Header("Level 3")]
-    public GameObject[] GameObjectsToHide3;
+    public enum DefaultVariables
+    {
+        GenerationsToRun,
+        ExplorationThreshold
+    }
 
-    [Header("Level 4")]
-    public GameObject[] GameObjectsToHide4;
+    [Serializable]
+    public class Default
+    {
+        public DefaultVariables Variable;
+        public int Value;
+    }
 
-    [Header("Level 5")]
-    public GameObject[] GameObjectsToHide5;
+    public LevelElements[] Levels;
 
     private GameController gameController;
     private int lastLevel = 0;
@@ -40,62 +58,41 @@ public class ProgressionManager : MonoBehaviour
 
     private void UpdateElementsForLevel(int level, bool hidden)
     {
-        switch (level)
+        foreach (LevelElements le in Levels)
         {
-            case 1:
-                foreach (GameObject go in GameObjectsToHide1)
+            if (le.LevelNumber == level)
+            {
+                foreach (GameObject go in le.GameObjectsToHide)
                     go.SetActive(hidden);
-                break;
-            case 2:
-                foreach (GameObject go in GameObjectsToHide2)
-                    go.SetActive(hidden);
-                break;
-            case 3:
-                foreach (GameObject go in GameObjectsToHide3)
-                    go.SetActive(hidden);
-                break;
-            case 4:
-                foreach (GameObject go in GameObjectsToHide4)
-                    go.SetActive(hidden);
-                break;
-            case 5:
-                foreach (GameObject go in GameObjectsToHide5)
-                    go.SetActive(hidden);
-                break;
+                return;
+            }
         }
     }
 
     private void SetDefaultsForLevel(int level)
     {
-        switch (level)
+        foreach (LevelElements le in Levels)
         {
-            case 1:
+            if (le.LevelNumber == level)
+            {
+                foreach(Default d in le.DefaultValues)
                 {
-                    gameController.SetNumGenerations(gameController.DefaultGenerationsToRun);
-                    gameController.SetExplorationThreshold(gameController.DefaultExplorationThreshold);
-                    break;
-                }
+                    switch(d.Variable)
+                    {
+                        case DefaultVariables.GenerationsToRun:
+                            gameController.SetNumGenerations(d.Value);
+                            break;
 
-            case 2:
-                {
-                    gameController.SetExplorationThreshold(gameController.DefaultExplorationThreshold);
-                    break;
-                }
+                        case DefaultVariables.ExplorationThreshold:
+                            gameController.SetExplorationThreshold(d.Value);
+                            break;
 
-            case 3:
-                {
-                    break;
+                        default:
+                            break;
+                    }
                 }
-
-            case 4:
-                {
-                    break;
-                }
-
-            case 5:
-                { 
-                    break;
-                }
+                return;
+            }
         }
     }
 }
