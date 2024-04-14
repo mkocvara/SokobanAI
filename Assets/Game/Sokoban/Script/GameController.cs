@@ -121,7 +121,9 @@ public class GameController : MonoBehaviour
         PlayButtonObject.GetComponent<Button>().onClick.AddListener(OnPlayButtonClicked);
         playbackSpeedTextMesh.text = playbackSpeed.ToString();
         
+        if (generationsToRun <= 0)
         SetNumGenerations(DefaultGenerationsToRun);
+        if (explorationThreshold <= 0)
         SetExplorationThreshold(DefaultExplorationThreshold);
     }
 
