@@ -14,18 +14,18 @@ public class GameRule : MonoBehaviour
         MoveIntoWall,
         [Description("Push the box")]
         PushBox,
-        [Description("Push the box onto the mark")]
-        BoxOnMark,
+        [Description("Push the box onto the target")]
+        BoxOnTarget,
         [Description("Push the box into a wall")]
         PushBoxIntoWall,
         [Description("Robot moves closer to the box")]
         PlayerMoveCloserToBox,
         [Description("Robot moves farther from the box")]
         PlayerMoveFartherFromBox,
-        [Description("Push the box closer to the mark")]
-        BoxPushedCloserToMark,
-        [Description("Push the box farther from the mark")]
-        BoxPushedFartherFromMark,
+        [Description("Push the box closer to the target")]
+        BoxPushedCloserToTarget,
+        [Description("Push the box farther from the target")]
+        BoxPushedFartherFromTarget,
     }
 
     public GameObject RewardInputObject, ActionNameTextObject;

@@ -502,7 +502,7 @@ public class GameController : MonoBehaviour
     private SavedData LoadSavedData()
     {
         if (!File.Exists(savedDataPath))
-            return new SavedData();
+            return null;
 
         string json = File.ReadAllText(savedDataPath);
         return JsonUtility.FromJson<SavedData>(json);
