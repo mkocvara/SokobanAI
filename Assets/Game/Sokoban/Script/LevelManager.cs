@@ -41,7 +41,7 @@ public class LevelManager : MonoBehaviour
 
         LoadAllLevels();
         LoadSavedData(gameController.SavedData);
-        OpenLevel(1);
+        OpenFirstUnsolvedLevel();
     }
 
     public void OpenLevel(int level)
@@ -115,6 +115,20 @@ public class LevelManager : MonoBehaviour
         levels.ForEach(l => l.SetSolved(false));
     }
 
+    private void OpenFirstUnsolvedLevel()
+    {
+        for (int i = 0; i < levels.Count; i++)
+        {
+            if (!levels[i].IsSolved)
+            {
+                OpenLevel(i + 1);
+                return;
+            }
+        }
+
+        OpenLevel(levels.Count);
+    }
+
     private void LoadAllLevels()
     {
         // NOTE if we want to stick with WebGL, must use UnityWebRequest to load files
@@ -154,6 +168,6 @@ public class LevelManager : MonoBehaviour
         //    "MapString: " + levels[currentLevel - 1].MapString + "\n\n" +
         //    "Instructios: " + levels[currentLevel - 1].Instructions);
 
-        instructionsTextMesh.SetText("<b>" + CurrentLevel.MapName + "</b>\n\n" + CurrentLevel.Instructions);
+        instructionsTextMesh.SetText($"<b>Level {CurrentLevel.LevelNumber}: {CurrentLevel.MapName}</b>\n\n{CurrentLevel.Instructions}");
     }
 }
