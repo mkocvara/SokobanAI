@@ -102,10 +102,6 @@ public class GameController : MonoBehaviour
 
     private SavedData savedData;
 
-    /* TODO LIST
-     * reduce the packaged python to bare essentials
-     */
-
     void Start()
     {
         generationNumberTextMesh = GenerationNumberTextObject.GetComponent<TextMeshProUGUI>();

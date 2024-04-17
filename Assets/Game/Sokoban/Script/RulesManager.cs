@@ -79,7 +79,7 @@ public class RulesManager : MonoBehaviour
     {
         if (Rules.Count == 0)
         {
-            Debug.LogWarning("GameController.SaveRules(): No rules to save.");
+            Debug.LogWarning("GameController.SaveRuleset(): No rules to save.");
             // return;
 
             // TODO: this would deserve better handling, ideally not
