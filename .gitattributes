@@ -3,4 +3,8 @@
 
 # Linguist exclusions
 Assets/StreamingAssets/Python/ linguist-vendored
+Assets/StreamingAssets/Python/** linguist-vendored
+Assets/StreamingAssets/Python/**/ linguist-vendored
 Assets/TextMesh\ Pro/ linguist-vendored
+Assets/TextMesh\ Pro/** linguist-vendored
+Assets/TextMesh\ Pro/**/ linguist-vendored
