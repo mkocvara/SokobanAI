@@ -204,9 +204,10 @@ public class GameWorld : MonoBehaviour
         }
     }
 
-#if DEBUG
+
     public void DebugPrintMapState()
     {
+#if DEBUG
         string debugMapState = "Map State: ";
         for (int y = 0; y < mapState.MapSize.y; y++)
         {
@@ -219,8 +220,9 @@ public class GameWorld : MonoBehaviour
         }
 
         Debug.Log(debugMapState);
-    }
 #endif
+    }
+
 
     public bool IsLevelSolved()
     {
