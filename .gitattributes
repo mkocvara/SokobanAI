@@ -2,7 +2,6 @@
 * text=auto
 
 # Linguist exclusions
-Assets/StreamingAssets/Python/ linguist-vendored
-Assets/StreamingAssets/Python/** linguist-vendored
-Assets/TextMesh\ Pro/ linguist-vendored
-Assets/TextMesh\ Pro/** linguist-vendored
+**/StreamingAssets/Python/** linguist-vendored
+**/StreamingAssets/Python/Lib/** linguist-vendored
+**/TextMesh\ Pro/** linguist-vendored
