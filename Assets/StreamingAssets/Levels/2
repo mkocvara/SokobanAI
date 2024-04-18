@@ -1,17 +1,14 @@
 N
-Negative Rewards 
+Negative Rewards
 M
-##########
-#....#..p#
-#....#...#
-#....#...#
-#...b....#
-#....#...#
-#x...#...#
-##########
+#######
+#p....#
+#####.#
+#x.b..#
+#######
 I
-To avoid unwanted actions like hitting a wall, we can penalise them by assigning negative rewards.
+To avoid unwanted actions like walking into a wall, we can discourage them by assigning negative rewards.
 
-Try adding a rule giving negative rewards when hitting walls, and another rule giving a positive reward for putting the box on the target. [TARGET AGAIN? MEANT TO BE BOX PUSHING INSTEAD?]
+Try training the robot with your previous rules. It's normal if it doesn't work. 
 
-[HAVING TESTED IT, FOLLOWING INSTRUCTIONS MAKES THIS LEVEL ALREADY EFFECTIVELY IMPOSSIBLE WITHOUT A LOT OF LUCK - I ADVISE RESTRUCTURING THE MAP, MAKING IT SMALLER]
+Next, try adding a rule giving a negative reward for walking into walls.

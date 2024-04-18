@@ -1,21 +1,29 @@
 {
-    "Name": "Level7",
+    "Name": "Level 7",
     "Rules": [
         {
             "Action": 3,
-            "Reward": 10
-        },
-        {
-            "Action": 2,
-            "Reward": 1
-        },
-        {
-            "Action": 4,
-            "Reward": -1
+            "Reward": 999
         },
         {
             "Action": 1,
-            "Reward": -1
+            "Reward": -10
+        },
+        {
+            "Action": 2,
+            "Reward": 2
+        },
+        {
+            "Action": 4,
+            "Reward": -10
+        },
+        {
+            "Action": 7,
+            "Reward": 3
+        },
+        {
+            "Action": 8,
+            "Reward": -2
         }
     ]
 }

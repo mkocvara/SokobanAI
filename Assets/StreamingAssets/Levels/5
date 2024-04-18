@@ -1,24 +1,21 @@
 N
-Q-table and Q-values
+Exploration threshold
 M
 ##########
+#x.#.#...#
+#..b.....#
+#....#...#
+###.##...#
 #........#
-##b....p.#
-#........#
-#........#
-#..x.....#
-#........#
+#....#..p#
 ##########
 I
-In this example, we are using a Q-table as the "brain" of the robot. [EXPLAIN MORE CLEARLY THAT THIS IS "UNDER THE HOOD"?]
-The Q-table is a table of values representing how desirable each action (UP, DOWN, LEFT, RIGHT) [BIG PROBLEM, WE CALL THE "SITUATION" PART OF RULES 'ACTIONS' ALREADY, THIS WILL BE CONFUSING] is for a given situation. These values are called Q-values. 
+Sometimes, the robot might not perform actions with high reward because it does not know how valuable they are, as they haven't attempted them yet, or even at all, during training.
 
-Every time the robot receives feedback in the form of a reward, these Q-values are changed based on it. Thus, a positive reward will lead to a positive Q-value and vice versa. 
+To help the robot explore more options, we use the <i>exploration threshold</i>. If we set this value to 100, then during training, the robot will have a high chance of randomly trying actions for the first 100 generations. After these 100 generations, the robot will use what it learned more and more in order to win the game.
 
-[OK? WHAT ARE Q-VALUES FOR THOUGH? I.E. THAT THEY ARE THE DECIDING FACTOR IN WHAT THE TRAINED ROBOT DOES. SHOULD BE EXPLAINED HERE.]
+Because the robot selects some or all of its moves at random during exploration, given the same set of rules, different runs might end in different results. If you feel like you got close, it may be worth retrying with the same rules.
 
-Try adding rules and changing the number of generations to help the robot win the level. 
+Try raising the exploration threshold to help the robot win the game. At this point, you are also likely going to need to add extra rules and rewards or change the number of generations to guide the robot towards the solution.
 
-[THE AI CAN STRUGGLE TO GET THE BOX ON A MARK WHICH IS NOT BY A WALL, BUT THE NEW "BOX CLOSER TO MARK RULE" FIXES IT. HOWEVER I FOUND THE RULE THAT MOVES ROBOT CLOSER TO THE BOX IS A RED HERRING AND ACHIEVES IN ROBOT LOOPING ON TWO TILES. AFTER PLAYING WITH AND WITHOUT IT, I THINK IT MIGHT BE BETTER TO REMOVE IT IN ALL HONESTY.
-
-ANOTHER THING IS IT'S ALSO ALMOST IMPOSSIBLE WITHOUT RAISING THE EXPLORATION THRESHOLD.]
+If you get stuck and don't know what rules to add, you can open the menu in the top right of the screen and click "Solve level". If you do, try and think about why those rules work.

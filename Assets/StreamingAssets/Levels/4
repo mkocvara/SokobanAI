@@ -1,21 +1,17 @@
 N
 Agent and Environment
 M
-##########
-#........#
-#.....#..#
-#.....#.p#
-#..#.b#..#
-#..#.....#
-#x.......#
-##########
+####
+#...#
+#...##
+#.x...#
+ #.....#
+  #.b###
+   #.p#
+    ##
 I
-The robot is called the 'agent', and the game is the 'environment'. 
+In the context of the AI, our little yellow robot is called the <i>agent</i>, and the game level or map is the <i>environment</i>. The agent learns to navigate the environment by taking its actions and receiving rewards. The agent’s goal is to take actions in any given situation which will produce the highest possible rewards.
 
-The agent learns to navigate the environment by taking actions in a given situation and receiving rewards. The agent’s goal is to take actions that will produce the best possible rewards.
+Any machine learning model is trained on a specific environment (in our case, a particular level). More difficult environments may require more training. For this reason, training large, general-purpose (therefore with  very complex environments) models, such as ChatGPT or most image generation models, is exceptionally challenging due to the time-consuming nature and potential pitfalls associated with errors in the training process.
 
-Try adding rules and changing the number of generations to help the robot win the level. 
-
-[THIS LEVEL IS REALLY DIFFICULT. EVEN KNOWING HOW THE AI WORKS I HAD A HARD TIME COMPLETING IT. EXPLAINING A BIT MORE ABOUT HOW THE AI LEARNS (SEE LEVEL 3 FEEDBACK) IS A START AND HOPEFULLY FIXING THE DISTANCE CALCULATIONS WILL HELP, BUT THERE'S A CHANCE THE LEVEL'S MAP MIGHT NEED REWORKING.
-
-ANOTHER THING IS IT'S ALMOST IMPOSSIBLE WITHOUT RAISING THE EXPLORATION THRESHOLD.]
+This level is a little simpler than the previous one and so the AI should be easier to train. Try reducing the number of generations as much as possible while still allowing the robot to win the game. Be careful not to reduce it too much!

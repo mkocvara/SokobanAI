@@ -1,21 +1,19 @@
 N
-Exploration threshold
+Putting It All Together
 M
 ##########
-#x.#.#...#
 #....#...#
-#..b.#...#
-###.##...#
+#....#.bp#
+#.#.....##
+#...#.#..#
 #........#
-#....#..p#
+#..#....x#
 ##########
 I
-Sometimes, the robot might not perform actions with high reward because it does not know how valuable they are. [EXPLAIN WHY - I.E., THEY HAVEN'T ATTEMPTED AT RANDOM THEM DURING TRAINING]
+If you got this far, good work. You got through all of the levels that demonstrate AI concepts. In this one, you'll simply have to put it all to practice to solve it.
 
-To help the robot explore more options, we use the EXPLORATION THRESHOLD. If we set it to 100, then the robot will have a high chance of randomly trying actions for 100 games. After these 100 games, the robot will use its knowledge to win the game. 
+If you haven't found it yet, there's a level picker accessible from the menu (button in the very top right of the screen). There you can review which levels you solved and return to retry any of them. You can also wipe your progress or load a sample set of rules which solve the level (though you still need to figure out the right number of generations and exploration threshold).
 
-Try changing the exploration threshold to help the robot win the game. 
+Speaking of sets of rules (or rulesets), in the bottom right of the rules panel, there are two buttons which allow you to save and load rulesets. Your rules are also auto saved here whenever you load a ruleset, click the "Solve level button" or close the game. 
 
-[I WOULD HONESTLY EITHER GET RID OF THIS ENTIRELY AND MAKE UP OUR OWN THRESHOLDS FOR EACH LEVEL / CALCULATE THEM AS A FRACTION OF GENERATIONS, OR ALTERNATIVELY MOVE IT AFTER LEVEL 3, WHERE WE EXPLAIN LEARNING. IT LEADS NICELY INTO THIS I RECKON. ALSO, I FIND THE GAME ACTUALLY MORE FUN WITH THE TWEAKABLE EXPLORATION THRESHOLD, AND IT ALSO HELPED ME UNDERSTAND Q-LEARNING BETTER.
-
-AS FOR THE MAP, IT'S PRETTY DECENT FOR EXPLAING EXPLORATION THRESHOLD, BUT I RECKON ONLY IF WE MOVE IT TO THE PLACE I SUGGESTED ABOVE. OTHERWISE, IT DOESN'T NEED ANY HIGHER THRESHOLD THAN LEVELS 4 THROUGH 7.]
+Finally, if you're up to an additional challenge, try to solve this level in no more than 1000 generations. Good luck, and thank you for playing!

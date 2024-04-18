@@ -1,17 +1,26 @@
 N
 Rules and Rewards
 M
-##########
-#x.......#
-#........#
-#..b.....#
-#........#
-#...p.####
-###...#
+#######
+#x....#
+#.....#
+#..b#.#
+###.p.#
   #####
+
 I
-[MISSING INTRODUCTION - what's sokoban? what is AI? what is the player doing?]
+WELCOME TO THE GAME OF AI-POWERED SOKOBAN!
 
-To help the robot understand what we want from it, we give it rewards for good actions. This feedback is the most important component of the learning process. [RULES NOT SUFFICIENTLY EXPLAINED]
+Sokoban is a very simple game, where a player (the yellow robot) moves around a two-dimensional map, avoiding walls (dark blue squared), pushing the box (brown) onto a target tile (yellow stripes). In this experiment, you will be presented Artificial Intelligence (AI) and Machine Learning concepts through a series of levels, which you will directly get to interact with via the Sokoban game.
 
-Try creating a positive reward for putting the box on the target and press the play button to start training.  [JUST TARGET? IT WORKS BUT FOLLOWING LEVELS ARE MADE MORE DIFFICULT]
+AI is a branch of computer science that focuses on creating systems capable of performing tasks that typically require human intelligence. Machine learning is a special kind of AI with the ability to <b>learn</b> without being explicitly programmed for every situation.
+
+As an example, when we use Google Maps to find the best route, it uses an AI that Google implemented. This AI did not learn to find routes, it was programmed to follow an algorithm to do so, which can be applied to any route (situation). Therefore, this AI is not machine learning. In contrast, ChatGPT was trained to be able to respond to any message (situation), which makes it a machine learning model.
+
+In this game, you do not directly control the robot player. Instead, you will be setting rules and parameters to a machine learning model which will control it. Whenever you press the play button, this AI will attempt to learn how to solve the level, using the rules you set up for guidance. If it succeeds, then you have solved the level.
+
+So let's get started!
+
+To help the robot understand what we want from it, we give it rewards for "good" actions. This feedback is the most important component of the learning process. We assign rewards through <i>rules</i>. You can create rules on the right side of the screen, in the orange panel. By clicking the + button, you unroll a list of possible rules; click on the one you wish to add. When added to your list of rules, you will see a number, 0 by default, on the right end of it. This value represents the <i>reward</i> the robot receives every time what the rule says happens. With this number you can indicate how desirable that outcome is; the higher the reward, the more the robot will work towards achieving that outcome. You can change this number by clicking it and typing a new one in.
+
+Try creating a rule with positive reward for pushing the box onto the target and click the play button (or press spacebar) to start training.

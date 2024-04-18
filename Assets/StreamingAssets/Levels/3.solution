@@ -1,17 +1,9 @@
 {
-    "Name": "Level3",
+    "Name": "Level 3",
     "Rules": [
         {
             "Action": 3,
-            "Reward": 10
-        },
-        {
-            "Action": 2,
             "Reward": 1
-        },
-        {
-            "Action": 4,
-            "Reward": -1
         },
         {
             "Action": 1,

@@ -2,18 +2,14 @@ N
 Training and Generations
 M
 ##########
-#........#
-#...b....#
-#....#...#
-#....#...#
-#....#p..#
-#x.......#
-##########
+#..#....x#
+##.###..##
+ #p.b....#
+ #..#...##
+ ######## 
 I
-Machine Learning models are defined by their ability to learn. This separates them from traditional programming where programs only follow instructions coded by the developers. In this game, the model trains by playing the game multiple times, starting by making random moves, then learning from its actions through the rewards given to it until it understands how to win the game. [I REWORDED THIS SLIGHTLY, ADDED A NOTE ABOUT MAKING RANDOM MOVES IN THE BEGINNING, AS PER FEEDBACK IN LEVEL 4]
+Machine learning models are defined by their ability to learn. This separates them from traditional programming where programs only follow instructions coded by the developers. They learn through <i>training</i>, which means attempting to solve a problem many times and incorporating feedback depending on how successful it was on each attempt. Each of those attempts is called a <i>generation</i>. Training for more generations usually leads to a better trained model at the cost of the training taking longer in terms of time. Usually, only once the AI has finished training to a satisfactory degree will it be put to real use.
 
-Each game during training is called GENERATION. 
+In this game, the model powering the robot trains by repeatedly playing through the level, initially making random moves, then learning from its actions through the rewards given to it until it understands how to win the game. Once the model has finished training, the trained robot will make a proper attempt to solve the level using what it's learned. Only if this is successful, then the level can be considered solved.
 
-Try changing the number of generations (blue bar at the top) until the robot wins by pushing the box on the target. 
-
-[TESTING THIS ONE, I KEPT THINKING "WELL I JUST NEED THE ROBOT TO ACCIDENTALLY HIT THE BOX ON THE MARK" BUT REALISED THAT OUR TARGET AUDIENCE WILL NOT KNOW THIS. ALSO, IT'S SO FAR AWAY THAT WITH ONLY THE RULES FROM PREVIOUS LEVELS IT WILL HARDLY HAPPEN. I THINK THIS LEVEL WILL BE DIFFICULT TO DIGEST. IT'S BETTER IF I ALSO HAVE THE 'PUSH BOX' RULE IN (AS PER ADVICE IN PREVIOUS LEVEL), BUT IT'S SO MUCH BETTER, THAT I DON'T EVEN NEED TO ADJUST GENERATIONS. I COULD CHANGE THE DEFAULT TO LESS THAN 1000, BUT THAT SEEMS UNREASONABLE? MAYBE THAT'S THE SOLUTION THOUGH.]
+Try changing the number of generations (on the blue bar at the top) until the robot wins by pushing the box on the target.

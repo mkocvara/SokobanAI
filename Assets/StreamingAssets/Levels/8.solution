@@ -1,9 +1,13 @@
 {
-    "Name": "Level8",
+    "Name": "Level 8",
     "Rules": [
         {
             "Action": 3,
-            "Reward": 10
+            "Reward": 999
+        },
+        {
+            "Action": 1,
+            "Reward": -10
         },
         {
             "Action": 2,
@@ -11,11 +15,11 @@
         },
         {
             "Action": 4,
-            "Reward": -1
+            "Reward": -10
         },
         {
-            "Action": 1,
-            "Reward": -1
+            "Action": 7,
+            "Reward": 2
         }
     ]
 }

@@ -1,20 +1,19 @@
 N
-Successfully Trained Model
+Over-rewarding
 M
 ##########
-#p.......#
-#........#
-#.##....x#
-#..#.....#
-#..#.b...#
-#..#.....#
+#......#p#
+#...#b...#
+#.#......#
+#...#....#
+#......#.#
+#x...#...#
 ##########
 I
-Once the model has finished training, we can stop updating the Q-values and rely on what the model has learned. 
+Training a model is usually not a straightforward process and sometimes giving too many rewards for a mundane action can cause the robot to be satisfied with repeating it, while entirely disregarding other actions you would like it to take. 
 
-[THIS LEVEL SEEMS A LITTLE SUPERFLOUS, BUT PERHAPS WE COULD FURTHER EXPLAIN THAT THE MORE GENERATIONS THERE ARE, THE LONGER THE TRAINING TAKES, HENCE WHY FEWER IS BETTER? OTHERWISE, JUST MERGE IT WITH THE PREVIOUS LEVEL.]
-Try reducing the number of generations as much as possible while still allowing the robot to win the game. Be careful not to reduce it too much!
+For example, if the robot is well rewarded for simply walking on empty ground, it might be content simply going back and forth between two tile, never reaching the target, or even pushing the box.
 
-[AFTER THE PREVIOUS LEVEL, THIS ONE IS SUPER EASY TO JUST DO WITH THE EXACT SAME SETTING. THAT ACTUALLY WORKS ALRIGHT WITH THE GOAL BEING TO REDUCE THE GENERATIONS HERE, AS IT WILL ALMOST CERTAINLY TAKE FEWER.]
+In order to demonstrate this, try adding the rule for stepping on empty ground and giving it a medium-sized reward. Press play and watch how the robot behaves.
 
-[TROUBLE IS WITH THE EXPLORATION THRESHOLD THOUGH - THE LEVEL SHOULD HAVE THE SAME ONE AS THE ONE BEFORE, PRESUMABLY, BUT THAT MIGHT MAKE IT EASY TO DIP BELOW THAT NUMBER, LEAVING THE AI TRAINING REALLY RANDOM. IN THE END I WENT FROM 5500 GENERATIONS TO 4500, AT EXPLORATION THRESHOLD OF 3000, SO NOT TOO BAD.]
+To solve the level, you will almost certainly need to remove that rule. Other rules may benefit from having their values tweaked to make the desired actions more attractive to the model. Try also adding new rules and changing the number of generations and exploration threshold to help the robot win the level.
