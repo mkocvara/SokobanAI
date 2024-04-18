@@ -32,6 +32,7 @@ public class GameController : MonoBehaviour
     // Other references
     public GameObject MainMenu;
     public GameObject LevelPicker;
+    public GameObject RulesetUIObjectsParent;
 
     public bool PausePlayback { get { return MainMenu.activeSelf || LevelPicker.activeSelf || playbackSpeed == 0; } }
 
@@ -125,7 +126,21 @@ public class GameController : MonoBehaviour
     private void Update()
     {
         if (Input.GetKeyDown(KeyCode.Space) && !LevelPicker.activeSelf && !MainMenu.activeSelf)
-            OnPlayButtonClicked();
+        {
+            int rulesetUIObjectsCount = RulesetUIObjectsParent.transform.childCount;
+            bool changingRulesets = false;
+            for (int i = 0; i < rulesetUIObjectsCount; i++)
+            {
+                if (RulesetUIObjectsParent.transform.GetChild(i).gameObject.activeSelf)
+                {
+                    changingRulesets = true;
+                    break;
+                }
+            }
+
+            if (!changingRulesets)
+                 OnPlayButtonClicked();
+        }
 
         if (Input.GetKeyDown(KeyCode.Escape))
         {

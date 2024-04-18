@@ -1,12 +1,14 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class LevelManager : MonoBehaviour
 {
-    public GameObject InstructionsTextObject, LevelPicker, LevelLayout, LevelSolvedHint;
+    public GameObject InstructionsTextObject, InstructionsScrollView;
+    public GameObject LevelPicker, LevelLayout, LevelSolvedHint;
     public GameObject LevelPrefab;
 
     public int CurrentLevelNumber { get; private set; } = -1;
@@ -17,6 +19,7 @@ public class LevelManager : MonoBehaviour
     private ProgressionManager progressionManager;
 
     private TextMeshProUGUI instructionsTextMesh;
+    private ScrollRect instructionsScrollRect;
 
     private List<Level> levels = new();
     private Level CurrentLevel { get { return levels[CurrentLevelNumber - 1]; } }
@@ -29,6 +32,7 @@ public class LevelManager : MonoBehaviour
         progressionManager = FindObjectOfType<ProgressionManager>();
 
         instructionsTextMesh = InstructionsTextObject.GetComponent<TextMeshProUGUI>();
+        instructionsScrollRect = InstructionsScrollView.GetComponent<ScrollRect>();
 
         // Clear dummy level buttons
         for (int i = LevelLayout.transform.childCount - 1; i >= 0; i--)
@@ -112,21 +116,14 @@ public class LevelManager : MonoBehaviour
 
     public void ResetSolvedLevels()
     {
-        levels.ForEach(l => l.SetSolved(false));
+        levels.ForEach(l => l.SetSolved(false)); 
     }
 
     private void OpenFirstUnsolvedLevel()
     {
-        for (int i = 0; i < levels.Count; i++)
-        {
-            if (!levels[i].IsSolved)
-            {
-                OpenLevel(i + 1);
-                return;
-            }
-        }
-
-        OpenLevel(levels.Count);
+        Level firstUnsolved = levels.FirstOrDefault(l => !l.IsSolved);
+        int levelToOpen = firstUnsolved != null ? firstUnsolved.LevelNumber : levels.Count;
+        OpenLevel(levelToOpen);
     }
 
     private void LoadAllLevels()
@@ -169,5 +166,6 @@ public class LevelManager : MonoBehaviour
         //    "Instructios: " + levels[currentLevel - 1].Instructions);
 
         instructionsTextMesh.SetText($"<b>Level {CurrentLevel.LevelNumber}: {CurrentLevel.MapName}</b>\n\n{CurrentLevel.Instructions}");
+        instructionsScrollRect.verticalNormalizedPosition = 1.0f;
     }
 }
