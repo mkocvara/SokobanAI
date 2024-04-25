@@ -1,10 +1,10 @@
 # SokobanAI
-AI powered Sokoban game made in 2024 for KF7004 MComp Research Project, a University module and final Masters project. It is built in Unity Engine with the addition of Python scripts.
+AI powered Sokoban game made in 2024 for an MComp Research Project, a University module and final Masters project. It is built in Unity Engine with the addition of Python scripts.
 
 This game is a non-traditional version of the classic game of Sokoban, where the player must push boxes onto targets in a simple 2D grid map. In this game, the player doesn't directly control the robot representing the player. Instead, you create rules to be given to a machine learning model, which powers the robot.
 
 ## Masters Reseach Project
-The purpose of the game was to support a research project titled "Evaluating Game-Based Learning Against the Traditional Lecture in Teaching Basics of AI". This project was undertaken by myself alongside [Vincent Briat](https://github.com/vincentbriat) over the course of our Masters year. It intended to compare the effectiveness of games as a vehicle to teach technical knowledge to laypeople with that of traditional lecture-based teaching. We had undertaken a study in which we asked some participants to watch a lecture explaining the basics of aritificial intelligence and machine learning, others to play this game (teaching the same knowledge), and comparing results from both via a follow-up questionnaire.
+The purpose of the game was to support a research project titled "Evaluating Game-Based Learning Against the Traditional Lecture in Teaching Basics of AI and Machine Learning". This project was undertaken by myself alongside [Vincent Briat](https://github.com/vincentbriat) over the course of our Masters year. It intended to compare the effectiveness of games as a vehicle to teach technical knowledge to laypeople with that of traditional lecture-based teaching. We had undertaken a study in which we asked some participants to watch a lecture explaining the basics of aritificial intelligence and machine learning, others to play this game (teaching the same knowledge), and comparing results from both via a follow-up questionnaire.
 
 ## Machine Learning
 The Sokoban player character is powered by a simple Q-learning algorithm written in python and executed as a process by the game using the bundled Python interpreter. The scripts were written by Vincent and integrated into the game by me.
