@@ -16,3 +16,7 @@ Designed from ground up with teaching in mind, this game leads the player throug
 
 ## Other Features
 In addition to the base functionality explained above, the game offers a level picker, a way to save and load rulesets, option to load a set of rules to solve a level for stuck players, and a way to change the playback speed (including pausing the playback).
+
+## Screenshots
+![Annotation 2024-04-25 223250](https://github.com/mkocvara/SokobanAI/assets/28301057/10cfeee5-3c5c-4fa1-8317-8cbdb59d9611)
+![Annotation 2024-04-25 223527](https://github.com/mkocvara/SokobanAI/assets/28301057/8de9f2b2-fa77-4bf2-a2cf-0603612e1ce9)
