@@ -1,5 +1,5 @@
 # SokobanAI
-AI powered Sokoban game made in 2024 for an MComp Research Project, a University module and final Masters project. It is built in Unity Engine with the addition of Python scripts.
+AI powered Sokoban game made in 2024 for an MComp Research Project, a University module and final Masters project, which achieved a mark of 86. It is built in Unity Engine with the addition of Python scripts.
 
 This game is a non-traditional version of the classic game of Sokoban, where the player must push boxes onto targets in a simple 2D grid map. In this game, the player doesn't directly control the robot representing the player. Instead, you create rules to be given to a machine learning model, which powers the robot.
 
